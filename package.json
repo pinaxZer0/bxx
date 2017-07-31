@@ -41,7 +41,7 @@
     "random-points-on-polygon": "0.0.4",
     "randomstring": "^1.1.5",
     "request": "^2.76.0",
-    "shuffle": "^0.2.2",
+    "gy-shuffle": "^0.2.2",
     "subdirs": "^1.0.0",
     "sync-obj": "^1.0.0",
     "turf-helpers": "^3.0.12",

@@ -1,4 +1,4 @@
-var shuffle = require('shuffle'),
+var shuffle = require('gy-shuffle'),
     baccaratHand = require('./baccarat-hand'),
     EventEmitter = require('events').EventEmitter,
     util = require('util');
