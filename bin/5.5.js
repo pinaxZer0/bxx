@@ -14209,7 +14209,7 @@ webpackJsonp([5],Array(110).concat([
 				} catch (e) {
 					loginInfo = {};
 				}
-				if (!loginInfo.rememberMe) {
+				if (loginInfo.rememberMe == false) {
 					this._view.getChild('n13').selected = false;
 					loginInfo.id = '';loginInfo.pwd = '';
 				} else {

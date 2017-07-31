@@ -424,7 +424,19 @@ class Baijiale extends TableBase {
 			// if (gd.setnum>=3) {
 				self.newgame();
 			}else self.newround();
-			setTimeout(cb, 7*1000);
+			var delay=1800;
+			if (gd.game.player.cards.length==2) delay+=1200;
+			else delay+=1800;
+			if (gd.game.banker.cards.length==2) delay+=1200;
+			else delay+=1800;
+			delay+=1500;
+			if (r.playerPair) delay+=1300; //pairs
+			if (r.bankerPair) delay+=1300;
+			delay+=500; //take coin
+			delay+=500; //give coins;
+			delay+=500; //to player
+			delay+=4000;
+			setTimeout(cb, delay);
 		});
 	}
 	isPlayerBanker() {

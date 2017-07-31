@@ -73,7 +73,7 @@
 /******/ 			script.charset = 'utf-8';
 /******/ 			script.async = true;
 
-/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"9bad11715efd39e60cbe","2":"d713b4fc21405aa4d987","3":"320d1257b8d5788f8d27","4":"fba7eb8d86b4650a413d","5":"dd264acc2dd1c7e44645","6":"4801fbff758e1caa7355","7":"5e7b22fb431b87be265b"}[chunkId] + "";
+/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"9bad11715efd39e60cbe","2":"d713b4fc21405aa4d987","3":"320d1257b8d5788f8d27","4":"1b384051debfa261ec1d","5":"d2859cf6fe836aa3b215","6":"4801fbff758e1caa7355","7":"287301d0b17ab547d9ad"}[chunkId] + "";
 /******/ 			head.appendChild(script);
 /******/ 		}
 /******/ 	};
@@ -97,11 +97,11 @@
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -308,12 +308,13 @@
 			startup_param.c = 'rol';startup_param.id = startup_param.reg;
 		}
 		if (startup_param.id) {
-			var stored = {};
+			var stored;
 			try {
 				stored = JSON.parse(localStorage.getItem('id'));
 			} catch (e) {
 				stored = {};
 			}
+			if ((typeof stored === 'undefined' ? 'undefined' : _typeof(stored)) != 'object' || Array.isArray(stored)) stored = {};
 			localStorage.setItem('id', JSON.stringify(merge(stored, startup_param)));
 		}
 		// if (!startup_param.notshowlogin && (startup_param.id || !!window.cordova ||startup_param.debug)) {
@@ -383,8 +384,8 @@
 					}
 					// Laya.init(pw, ph, laya.webgl.WebGL);
 					Laya.init(1280, 720, laya.webgl.WebGL);
-					Laya.SoundManager.musicMuted = localStorage.getItem('bgm') != 'true';
-					Laya.SoundManager.soundMuted = localStorage.getItem('snd') != 'true';
+					Laya.SoundManager.musicMuted = localStorage.getItem('bgmMuted') == 'true';
+					Laya.SoundManager.soundMuted = localStorage.getItem('sndMuted') == 'true';
 					var bv = localStorage.getItem('bgmvol');
 					if (bv) {
 						bv = Number(bv);
@@ -464,8 +465,8 @@
 						}, {
 							key: 'onAddedToStage',
 							value: function onAddedToStage() {
-								this.x = (Laya.stage.width - this.initWidth) / 2;
-								this.y = (Laya.stage.height - this.initHeight) / 2;
+								this.x = (Laya.stage.designWidth - this.initWidth) / 2;
+								this.y = (Laya.stage.designHeight - this.initHeight) / 2;
 							}
 						}]);
 
@@ -13270,22 +13271,22 @@
 				var bgmVol = this.contentPane.getChild('n97'),
 				    sndVol = this.contentPane.getChild('n99');
 				var storedBgmVol, storedSndVol;
-				storedBgmVol = Number(localStorage.getItem('bgmvol'));
-				if (isNaN(storedBgmVol)) storedBgmVol = 100;
-				storedSndVol = Number(localStorage.getItem('sndvol'));
-				if (isNaN(storedSndVol)) storedSndVol = 100;
+				storedBgmVol = localStorage.getItem('bgmvol');
+				if (storedBgmVol == null) storedBgmVol = 100;else storedBgmVol = Number(storedBgmVol);
+				storedSndVol = localStorage.getItem('sndvol');
+				if (storedSndVol == null) storedSndVol = 100;else storedSndVol = Number(storedSndVol);
 
 				var bgm = this.contentPane.getChild('n104').asButton;
-				bgm.selected = localStorage.getItem('bgm') != 'true';
+				bgm.selected = localStorage.getItem('bgmMuted') == 'true';
 				bgm.onClick(null, function () {
 					Laya.SoundManager.musicMuted = bgm.selected;
-					if (Laya.SoundManager.musicMuted) bgmVol.value = 0;else bgmVol.value = storedBgmVol;
+					if (Laya.SoundManager.musicMuted) bgmVol.value = 0;else bgmVol.value = Laya.SoundManager.musicVolume * 100;
 				});
 				var snd = this.contentPane.getChild('n106').asButton;
-				snd.selected = localStorage.getItem('snd') != 'true';
+				snd.selected = localStorage.getItem('sndMuted') == 'true';
 				snd.onClick(null, function () {
 					Laya.SoundManager.soundMuted = snd.selected;
-					if (Laya.SoundManager.soundMuted) sndVol.value = 0;else sndVol.value = storedSndVol;
+					if (Laya.SoundManager.soundMuted) sndVol.value = 0;else sndVol.value = Laya.SoundManager.soundVolume * 100;
 				});
 
 				bgmVol.value = bgm.selected ? 0 : storedBgmVol;
@@ -13308,8 +13309,8 @@
 				});
 
 				this.contentPane.getChild('n101').onClick(this, function () {
-					localStorage.setItem('bgm', !Laya.SoundManager.musicMuted);
-					localStorage.setItem('snd', !Laya.SoundManager.soundMuted);
+					localStorage.setItem('bgmMuted', Laya.SoundManager.musicMuted);
+					localStorage.setItem('sndMuted', Laya.SoundManager.soundMuted);
 					localStorage.setItem('bgmvol', Laya.SoundManager.musicVolume * 100);
 					localStorage.setItem('sndvol', Laya.SoundManager.soundVolume * 100);
 					this.hide();

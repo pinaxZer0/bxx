@@ -516,6 +516,22 @@ webpackJsonp([7],Array(154).concat([
 		return n;
 	}
 
+	function snd(url, last, cb) {
+		if (typeof last == 'function') {
+			cb = last;
+			last = 1000;
+		}
+		if (!cb) cb = function cb() {};
+		if (Laya.SoundManager.soundMuted) return setTimeout(function () {
+			console.log(url, 'timeout');
+			cb();
+		}, last);
+		Laya.SoundManager.playSound(url, 1, Handler.create(null, function () {
+			console.log(url, 'done');
+			cb();
+		}));
+	}
+
 	var Room = function (_RoomBase) {
 		_inherits(Room, _RoomBase);
 
@@ -551,7 +567,7 @@ webpackJsonp([7],Array(154).concat([
 				//self.roadBeadPlate.refreshBeadPlate(self.gamedata.his);
 			}).on('statuschgd', function () {
 				console.log('chg status to', gd.status);
-				if (gd.status == 1) Laya.SoundManager.playSound(__webpack_require__(213));
+				if (gd.status == 1) snd(__webpack_require__(213));
 				if (gd.status == 2) {
 					self._view.getController('fapai').selectedIndex = 7;
 					self._view.getChild('n215').visible = false;
@@ -597,7 +613,7 @@ webpackJsonp([7],Array(154).concat([
 			}).on('enrollchgd', function () {
 				self._view.getChild('guashuailist').numItems = gd.enroll ? gd.enroll.length : 0;
 			}).on('countdownchgd', function () {
-				if (gd.countdown > 0 && gd.countdown <= 5) Laya.SoundManager.playSound(__webpack_require__(214));
+				if (gd.countdown > 0 && gd.countdown <= 5) snd(__webpack_require__(214));
 				self._view.getChild('n175').text = gd.countdown;
 				if (gd.countdown <= 5) self._view.getTransition('t7clock').play();
 				if (gd.countdown == 0) {
@@ -683,9 +699,9 @@ webpackJsonp([7],Array(154).concat([
 						self._view.getTransition('t6').play();
 						// async.parallel([
 						function plysnd(cb) {
-							Laya.SoundManager.playSound(__webpack_require__(215)("./play" + cardScore(gd.game.player.cards.slice(0, 2)) + '.mp3'), 1, Handler.create(null, function () {
-								Laya.SoundManager.playSound(__webpack_require__(229)("./bank" + cardScore(gd.game.banker.cards.slice(0, 2)) + '.mp3'), 1, Handler.create(null, cb));
-							}));
+							snd(__webpack_require__(215)("./play" + cardScore(gd.game.player.cards.slice(0, 2)) + '.mp3'), 1200, function () {
+								snd(__webpack_require__(229)("./bank" + cardScore(gd.game.banker.cards.slice(0, 2)) + '.mp3'), 1200, cb);
+							});
 						}
 						function wait(cb) {
 							setTimeout(cb, 1800);
@@ -695,34 +711,30 @@ webpackJsonp([7],Array(154).concat([
 					}, function playPlayerThirdCard(next) {
 						if (gd.game.player.cards.length < 3) return next();
 						async.parallel([function plysnd(cb) {
-							Laya.SoundManager.playSound(__webpack_require__(226), 1, Handler.create(null, cb));
+							snd(__webpack_require__(226), 1600, cb);
 						}, function plyani(cb) {
-							Laya.SoundManager.playSound(__webpack_require__(243));
+							snd(__webpack_require__(243));
 							self._view.getChild('fanpai5').url = toCardUrl(gd.game.player.cards[2]);
 							self._view.getTransition('t9').play(Handler.create(null, function () {
 								self._view.getChild('n189').text = cardScore(gd.game.player.cards);
 								cb();
 							}));
 						}], function () {
-							Laya.SoundManager.playSound(__webpack_require__(215)("./play" + cardScore(gd.game.player.cards) + '.mp3'), 1, Handler.create(null, function () {
-								next();
-							}));
+							snd(__webpack_require__(215)("./play" + cardScore(gd.game.player.cards) + '.mp3'), 1200, next);
 						});
 					}, function playerBankerThirdCard(next) {
 						if (gd.game.banker.cards.length < 3) return next();
 						async.parallel([function plysnd(cb) {
-							Laya.SoundManager.playSound(__webpack_require__(240), 1, Handler.create(null, cb));
+							snd(__webpack_require__(240), 1600, cb);
 						}, function plyani(cb) {
-							Laya.SoundManager.playSound(__webpack_require__(243));
+							snd(__webpack_require__(243));
 							self._view.getChild('fanpai6').url = toCardUrl(gd.game.banker.cards[2]);
 							self._view.getTransition('t10').play(Handler.create(null, function () {
 								self._view.getChild('n193').text = cardScore(gd.game.banker.cards);
 								cb();
 							}));
 						}], function () {
-							Laya.SoundManager.playSound(__webpack_require__(229)("./bank" + cardScore(gd.game.banker.cards) + '.mp3'), 1, Handler.create(null, function () {
-								next();
-							}));
+							snd(__webpack_require__(229)("./bank" + cardScore(gd.game.banker.cards) + '.mp3'), 1200, next);
 						});
 					}, function playWhoWin(next) {
 						// self._view.getController('fapai').selectedIndex=5;
@@ -733,13 +745,13 @@ webpackJsonp([7],Array(154).concat([
 						icon.visible = true;
 						if (bankers > players) {
 							ctrl.selectedIndex = 0;
-							Laya.SoundManager.playSound(__webpack_require__(242));
+							snd(__webpack_require__(242));
 						} else if (bankers == players) {
 							ctrl.selectedIndex = 2;
-							Laya.SoundManager.playSound(__webpack_require__(244));
+							snd(__webpack_require__(244));
 						} else {
 							ctrl.selectedIndex = 1;
-							Laya.SoundManager.playSound(__webpack_require__(228));
+							snd(__webpack_require__(228));
 						}
 						// self._view.getTransition('t6').play(Handler.create(null, next));
 						function playWinArea() {
@@ -790,7 +802,7 @@ webpackJsonp([7],Array(154).concat([
 						}
 						async.parallel([function plysnd(cb) {
 							async.eachLimit(snds, 1, function (sndfile, _cb) {
-								Laya.SoundManager.playSound(sndfile, 1, Handler.create(null, _cb));
+								snd(sndfile, 1300, _cb);
 							}, function () {
 								cb();
 							});
@@ -827,7 +839,7 @@ webpackJsonp([7],Array(154).concat([
 								_loop(u);
 							}
 						});
-						if (fleetCoins > 1) Laya.SoundManager.playSound(__webpack_require__(245));else if (fleetCoins == 1) Laya.SoundManager.playSound(__webpack_require__(246));
+						if (fleetCoins > 1) snd(__webpack_require__(245));else if (fleetCoins == 1) snd(__webpack_require__(246));
 						setTimeout(next, 500, null, winArr, loseArr);
 					}, function clearLoseXiazhuPane(winArr, loseArr, next) {
 						for (var i = 0; i < loseArr.length; i++) {
@@ -851,7 +863,7 @@ webpackJsonp([7],Array(154).concat([
 							}
 							if (delay > maxdelay) maxdelay = delay;
 						}
-						if (maxdelay > 70) Laya.SoundManager.playSound(__webpack_require__(245));else if (maxdelay == 70) Laya.SoundManager.playSound(__webpack_require__(246));
+						if (maxdelay > 70) snd(__webpack_require__(245));else if (maxdelay == 70) snd(__webpack_require__(246));
 						setTimeout(next, maxdelay + 450, null, winArr, loseArr);
 					}, function clearWinXiazhuPane(winArr, loseArr, next) {
 						for (var i = 0; i < winArr.length; i++) {
@@ -893,7 +905,7 @@ webpackJsonp([7],Array(154).concat([
 								_loop3(u);
 							}
 						});
-						if (fleetCoins > 1) Laya.SoundManager.playSound(__webpack_require__(245));else if (fleetCoins == 1) Laya.SoundManager.playSound(__webpack_require__(246));
+						if (fleetCoins > 1) snd(__webpack_require__(245));else if (fleetCoins == 1) snd(__webpack_require__(246));
 						setTimeout(next, 500);
 					}, function clearAll(next) {
 						self.clearAllCoins();
@@ -943,7 +955,7 @@ webpackJsonp([7],Array(154).concat([
 					}
 					self._lastDeal[userid] = clone(gd.deal[userid]);
 					var coins = self.calcCoinsDst(curDeal);
-					if (coins.length == 1) Laya.SoundManager.playSound(__webpack_require__(246));else Laya.SoundManager.playSound(__webpack_require__(245));
+					if (coins.length == 1) snd(__webpack_require__(246));else snd(__webpack_require__(245));
 					if (!self._coins[userid]) self._coins[userid] = { xian: [], zhuang: [], xianDui: [], zhuangDui: [], he: [] };
 					var storedCoin = self._coins[userid];
 					if (userid == me.id) {
@@ -963,7 +975,7 @@ webpackJsonp([7],Array(154).concat([
 					// fly back
 					self._lastDeal[userid] = clone(gd.deal[userid]);
 					var dst = userid == me.id ? { x: 615, y: 446 } : { x: 222, y: 239 };
-					Laya.SoundManager.playSound(__webpack_require__(247));
+					snd(__webpack_require__(247));
 
 					var _loop5 = function _loop5(sector) {
 						var storedCoin = self._coins[userid][sector];
