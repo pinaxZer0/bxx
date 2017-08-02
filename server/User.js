@@ -173,7 +173,7 @@ class User extends EventEmitter {
 	}
 	quit() {
 		if (this.table && this.table.leave) this.table.leave(this);
-		this.offline=true;
+		// this.offline=true;
 		this.emit('out', this);
 	}
 	/**
@@ -810,6 +810,34 @@ class User extends EventEmitter {
 						if (err) return self.senderr(err);
 						self.send({c:'admin.addCoinsLog', logs:r});
 					});
+				});
+			break;
+			case 'admin.add':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				if  (pack.userid==null) return self.senderr('参数错误');
+				User.fromShowId(pack.userid, {isAdmin:true},  function(err, user) {
+					if (err) self.senderr(err);
+					user.dbuser.isAdmin=true;
+					self.send({c:'admin.add', r:'ok'});
+				});
+			break;
+			case 'admin.ls':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				getDB(function(err, db, easym) {
+					if (err) return self.senderr(err);
+					db.users.find({isAdmin:true}, {nickname:true, coins:true, showId:true, isAdmin:true}).toArray(function(err, arr) {
+						if (err) return self.senderr(err);
+						self.send({c:'admin.ls', arr:arr});
+					});
+				})
+			break;
+			case 'admin.rm':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				if  (pack.userid==null) return self.senderr('参数错误');
+				User.fromShowId(pack.userid, {isAdmin:true},  function(err, user) {
+					if (err) self.senderr(err);
+					user.dbuser.isAdmin=false;
+					self.send({c:'admin.rm', r:'ok'});
 				});
 			break;
 			default:

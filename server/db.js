@@ -8,7 +8,7 @@ var __stored_db=null;
 module.exports=function (cb) {
 	if (__stored_db) return cb(null, __stored_db, easym);
 	else new easym.DbProvider().init(argv.mongo, {exists:[
-		{users:{index:['nickname', 'coins', 'diamond', 'showId']}},
+		{users:{index:['nickname', 'coins', 'diamond', 'showId', 'isAdmin']}},
 		{bills:{index:['user'], capped:true, size:100*1024, max:100000}},
 		{mails:{index:['to', 'from', 'used'], capped:true, size:100*1024, max:100000}}, 
 		{withdraw:{index:['from', '_t', 'exported']}}, 

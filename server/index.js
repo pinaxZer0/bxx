@@ -57,7 +57,7 @@ function afterUserIn(err, pack, ws, dbuser) {
 			dbuser.pwd=pack.pwd;
 			g_db.p.users.find({_id:'showId'}).limit(1).toArray(function(err, result) {
 				if (err) return;
-				if (result.length==0) dbuser.showId=1;
+				if (result.length==0) dbuser.showId=10000;
 				else dbuser.showId=(result[0].v||0)+1;
 				g_db.p.users.update({_id:'showId'}, {$set:{v:dbuser.showId}}, {upsert:true});
 				dbuser.province=pack.province;

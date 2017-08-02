@@ -218,6 +218,10 @@ webpackJsonp([6],{
 						});
 					});
 
+					// admin管理
+					// _view.getController('c1').on
+
+					// 进入游戏
 					_view.getChild('n3').onClick(hall, hall.enterGame);
 					cb(null, hall);
 				}));

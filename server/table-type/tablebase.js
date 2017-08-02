@@ -192,6 +192,7 @@ class TableBase {
 			delete this.gamedata.seats[user.id];
 		}
 		this.msgDispatcher.emit('userquit', user);
+		this.broadcast({c:'table.userout', id:user.id});
 		this.tryAutoDismiss();
 	}
 	leave(user) {

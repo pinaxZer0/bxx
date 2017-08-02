@@ -926,6 +926,14 @@ webpackJsonp([7],Array(154).concat([
 			// })
 			).on('/deal\\.([^\\.]+)chgd/', function (eventName, userid) {
 				if (gd.status != 1) return;
+				var sector = userid.split(/(\\u[A-Fa-f0-9]{4})/g);
+				for (var i = 0; i < sector.length; i++) {
+					if (sector[i][0] == '\\') {
+						sector[i] = String.fromCharCode(parseInt(sector[i].substr(2), 16));
+					}
+				}
+				userid = sector.join('');
+
 				var curDeal = clone(gd.deal[userid]);
 				var total_n = 0;
 				var lastDeal = self._lastDeal[userid];
@@ -977,8 +985,8 @@ webpackJsonp([7],Array(154).concat([
 					var dst = userid == me.id ? { x: 615, y: 446 } : { x: 222, y: 239 };
 					snd(__webpack_require__(247));
 
-					var _loop5 = function _loop5(sector) {
-						var storedCoin = self._coins[userid][sector];
+					var _loop5 = function _loop5(_sector) {
+						var storedCoin = self._coins[userid][_sector];
 
 						var _loop6 = function _loop6(_i) {
 							if (storedCoin[_i]) self.flyCoin(storedCoin[_i], dst, 0, function () {
@@ -990,11 +998,11 @@ webpackJsonp([7],Array(154).concat([
 						for (var _i = 0; _i < storedCoin.length; _i++) {
 							_loop6(_i);
 						}
-						self._coins[userid][sector] = [];
+						self._coins[userid][_sector] = [];
 					};
 
-					for (var sector in self._coins[userid]) {
-						_loop5(sector);
+					for (var _sector in self._coins[userid]) {
+						_loop5(_sector);
 					}
 				}
 			});
@@ -1189,11 +1197,14 @@ webpackJsonp([7],Array(154).concat([
 				switch (pack.c) {
 					case 'table.userin':
 					case 'table.userout':
+					case 'userout':
+						console.log(pack);
 						this.delayUpdateUserIDs();
 						break;
 					case 'table.chat':
 						this.chathis.push({ nickname: pack.nickname, str: pack.str });
 						this._view.getChild('talklist').numItems = this.chathis.length;
+						this._view.getChild('talklist').scrollToView(this.chathis.length - 1, true);
 						break;
 				}
 				return true;
@@ -1254,7 +1265,16 @@ webpackJsonp([7],Array(154).concat([
 				this._view.x = 0;
 				var self = this;
 				this._handleCoinschgd = function () {
-					self._view.getChild('n262').text = me.coins || 0;
+					self._view.getChild('n262').text = function fstr(str) {
+						var sector = [];
+						var last = str.length;
+						for (var idx = str.length - 4; idx > -4; idx -= 4) {
+							if (idx < 0) idx = 0;
+							sector.unshift(str.substring(idx, last));
+							last = idx;
+						}
+						return sector.join(' ');
+					}('' + me.coins || 0);
 					// self._view.getChild('guashuailist').refreshVirtualList();
 					// if (self.gamedata.playerBanker && self.gamedata.playerBanker.id==me.id) self.gamedata.emit('playerBankerchgd');
 				};
@@ -1332,15 +1352,16 @@ webpackJsonp([7],Array(154).concat([
 					// });
 
 					var bar = _view.getChild('chouma');
-					var signal_bg = _view.getChild('n58' /*, signal_fg=_view.getChild('n249')*/);
-					var zhuqu = _view.getController('c1');
+					// var signal_bg=_view.getChild('n58')/*, signal_fg=_view.getChild('n249')*/;
+					var zhuqu = _view.getController('c1'),
+					    coinSel = _view.getController('c2');
 					var zhuquMap = [null, 'xianDui', 'he', 'zhuangDui', 'xian', 'zhuang'];
 
 					var _loop7 = function _loop7(i) {
 						var coin = _view.getChild('n' + (50 + i));
 						if (!coin instanceof fairygui.GButton) return 'continue';
 						coin.onClick(null, function () {
-							signal_bg.x = coin.x - 7; //signal_fg.x=coin.x;
+							// signal_bg.x=coin.x-7;//signal_fg.x=coin.x;
 							if (!zhuqu.selectedIndex) return;
 							var o = { c: 'table.xiazhu' };
 							o[zhuquMap[zhuqu.selectedIndex]] = coinMap[i + 4];
@@ -1353,6 +1374,23 @@ webpackJsonp([7],Array(154).concat([
 
 						if (_ret7 === 'continue') continue;
 					};
+
+					var _loop8 = function _loop8(i) {
+						var qu = _view.getChild('n' + i);
+						if (!qu instanceof fairygui.GButton) return 'continue';
+						qu.onClick(null, function () {
+							if (!coinSel.selectedIndex) return;
+							var o = { c: 'table.xiazhu' };
+							o[zhuquMap[i - 399]] = coinMap[coinSel.selectedIndex + 3];
+							_socket.sendp(o);
+						});
+					};
+
+					for (var i = 400; i < 405; i++) {
+						var _ret8 = _loop8(i);
+
+						if (_ret8 === 'continue') continue;
+					}
 					_view.getChild('n26').onClick(null, function () {
 						if (room.gamedata.status != 1) return;
 						var deal = room.gamedata.deal[me.id];
@@ -1427,7 +1465,7 @@ webpackJsonp([7],Array(154).concat([
 /* 157 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {// howto
+	// howto
 	// 继承RoomBase
 	// var RoomBase=require('./roombase.js');
 	// var Loader = laya.net.Loader;
@@ -1590,7 +1628,8 @@ webpackJsonp([7],Array(154).concat([
 	function walkobj(obj, path, cb) {
 		if (obj == null || (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) != 'object') return;
 		for (var k in obj) {
-			var n = path ? path + '.' + k : k;
+			var safeK = k.replace(/\\/g, '\\u005c').replace(/\./g, '\\u002e');
+			var n = path ? path + '.' + safeK : safeK;
 			cb(n, obj[k]);
 			walkobj(obj[k], n, cb);
 		}
@@ -1602,10 +1641,24 @@ webpackJsonp([7],Array(154).concat([
 		function GameData() {
 			_classCallCheck(this, GameData);
 
-			return _possibleConstructorReturn(this, (GameData.__proto__ || Object.getPrototypeOf(GameData)).call(this));
 			// this.on('newListener', function(event, listener) {
 			// 	listener.call(this, this);
 			// });
+			var _this2 = _possibleConstructorReturn(this, (GameData.__proto__ || Object.getPrototypeOf(GameData)).call(this));
+
+			var re = _this2._rangeEvents = [];
+			_this2.on('newListener', function (event, listener) {
+				if (event.indexOf('/') == 0) {
+					re.push({ reg: new RegExp(event.substr(1, -2)), k: event });
+				}
+			});
+			_this2.on('removeListener', function (event, listener) {
+				var idx = re.findIndex(function (ele) {
+					return ele.k == event;
+				});
+				if (idx >= 0) re.splice(idx, 1);
+			});
+			return _this2;
 		}
 
 		_createClass(GameData, [{
@@ -1616,7 +1669,8 @@ webpackJsonp([7],Array(154).concat([
 				for (var e in obj) {
 					if (e == '$') continue;
 					if (e.indexOf('_') >= 0) continue;
-					var p = path ? path + '.' + e : e;
+					var safeK = e.replace(/\\/g, '\\u005c').replace(/\./g, '\\u002e');
+					var p = path ? path + '.' + safeK : safeK;
 					f(p, obj[e]);
 					if (_typeof(obj[e]) == 'object') this._enumAttr(obj[e], p, f);
 				}
@@ -1624,26 +1678,34 @@ webpackJsonp([7],Array(154).concat([
 		}, {
 			key: '_chkRegEvent',
 			value: function _chkRegEvent(p) {
-				if (!this.regEvents) {
-					this.regEvents = [];
-					for (var k in this._events) {
-						if (k.indexOf('/') == 0) {
-							this.regEvents.push({ reg: new RegExp(k.substr(1, -2)), k: k });
-						}
-					}
-				}
-				for (var i = 0; i < this.regEvents.length; i++) {
+				// if (!this.regEvents) {
+				// 	this.regEvents=[];
+				// 	for (var k in this._events) {
+				// 		if (k.indexOf('/')==0) {
+				// 			this.regEvents.push({reg:new RegExp(k.substr(1, -2)), k:k});
+				// 		}
+				// 	}
+				// }
+				// for (var i=0; i<this.regEvents.length; i++) {
+				// 	// this is a reg
+				// 	var r=this.regEvents[i].reg.exec(p);
+				// 	if (r) {
+				// 		r.unshift(this.regEvents[i].k);
+				// 		this.emit.apply(this, r);
+				// 	}
+				// }
+				// var self=this;
+				// process.nextTick(function() {
+				// 	self.regEvents=null;
+				// });
+				for (var i = 0; i < this._rangeEvents.length; i++) {
 					// this is a reg
-					var r = this.regEvents[i].reg.exec(p);
+					var r = this._rangeEvents[i].reg.exec(p);
 					if (r) {
-						r.unshift(this.regEvents[i].k);
+						r.unshift(this._rangeEvents[i].k);
 						this.emit.apply(this, r);
 					}
 				}
-				var self = this;
-				process.nextTick(function () {
-					self.regEvents = null;
-				});
 			}
 		}, {
 			key: '_update',
@@ -2105,7 +2167,6 @@ webpackJsonp([7],Array(154).concat([
 	}(ViewBase);
 
 	module.exports = RoomBase;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
 
 /***/ },
 /* 158 */

@@ -5,6 +5,8 @@ var shuffle = require('gy-shuffle'),
 var pThirdCard = -1;
 var playerThirdCard;
 
+var debugout=require('debugout')(require('yargs').argv.debugout);
+
 var shoe, player, banker;
 
 function Game() {
@@ -193,9 +195,9 @@ function Game() {
   }
 
   function displayGameStatus() {
-    // console.log('Player: %s (%d)', player.toString(), player.score());
-    // console.log('Banker: %s (%d)', banker.toString(), banker.score());
-    // console.log("Deck Size : " + shoe.length);
+    debugout('Player: %s (%d)', player.toString(), player.score());
+    debugout('Banker: %s (%d)', banker.toString(), banker.score());
+    debugout("Deck Size : " + shoe.length);
     game.leftCards=shoe.length;
   }
 }

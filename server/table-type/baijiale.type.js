@@ -37,9 +37,10 @@ class Baijiale extends TableBase {
 		var game=this.gamedata.game=new Game();
 		var self=this;
 		game.on('burn', function(detail) {
-			self.broadcast({c:'table.baccarat.burn', detail});
+			self.broadcast({c:'table.baccarat.burn', detail, seq:1});
 		})
 		.on('result', function(detail) {
+			debugout('set', self.gamedata.setnum, detail, '@', new Date());
 			detail.playerCard=game.player.cards;
 			detail.bankerCard=game.banker.cards;
 			self.gamedata.his.push(detail);
@@ -59,7 +60,7 @@ class Baijiale extends TableBase {
 		return true;
 	}
 	leave(user) {
-		this.broadcast({c:'table.userout', id:user.id});
+		// this.broadcast({c:'table.userout', id:user.id});
 		this.msgDispatcher.emit('userleave', user);
 		this.quit(user);
 	}
@@ -222,7 +223,7 @@ class Baijiale extends TableBase {
 			self.gamedata.game.begin();
 			return cb();
 		}
-		u.createInteract({c:'table.waitQiepai'}, {times:1, timeout:5})
+		u.createInteract({c:'table.waitQiepai', seq:1}, {times:1, timeout:5})
 		.on('ans', function(pack) {
 			self.broadcast(pack, vus[choose]);
 		})
@@ -238,6 +239,7 @@ class Baijiale extends TableBase {
 		gd.deal={};
 		var total={xian:0, xianDui:0, zhuang:0, zhuangDui:0, he:0};
 		function handleXiazhu(pack, user) {
+			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
 			if (!deal) {
 				gd.deal[user.id]={xianDui:0, zhuangDui:0, he:0, xian:0, zhuang:0, user:user};
@@ -289,6 +291,7 @@ class Baijiale extends TableBase {
 			}			
 		}
 		function handleCancelXiazhu(pack, user) {
+			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
 			if (!deal) return;
 			if (deal.sealed) return;
@@ -302,6 +305,7 @@ class Baijiale extends TableBase {
 			deal.xian=deal.xianDui=deal.zhuangDui=deal.he=deal.zhuang=0;
 		}
 		function handleConfirmXiazhu(pack, user) {
+			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
 			if (!deal) return;
 			deal.sealed=true;
@@ -332,7 +336,7 @@ class Baijiale extends TableBase {
 		debugout(this.roomid, 'jiesuan');
 		this.gamedata.status=0;
 		const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
-		const waterRatio=0.9;
+		const waterRatio=0.99;
 		var self=this, gd=this.gamedata;
 		var r=gd.his[gd.his.length-1];
 		var winArr=[];

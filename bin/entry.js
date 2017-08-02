@@ -73,7 +73,7 @@
 /******/ 			script.charset = 'utf-8';
 /******/ 			script.async = true;
 
-/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"9bad11715efd39e60cbe","2":"d713b4fc21405aa4d987","3":"320d1257b8d5788f8d27","4":"1b384051debfa261ec1d","5":"d2859cf6fe836aa3b215","6":"4801fbff758e1caa7355","7":"287301d0b17ab547d9ad"}[chunkId] + "";
+/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"9bad11715efd39e60cbe","2":"d713b4fc21405aa4d987","3":"320d1257b8d5788f8d27","4":"1b384051debfa261ec1d","5":"7cefbab858f5b8bae031","6":"86a2873ab7e475b84106","7":"14cdc63ffd9955f5c58c"}[chunkId] + "";
 /******/ 			head.appendChild(script);
 /******/ 		}
 /******/ 	};
@@ -11726,28 +11726,17 @@
 				    self = this;
 				cont.getChild('n90').onClick(null, function () {
 					var secpwd = cont.getChild('n75').text,
-					    pq1 = cont.getChild('n78').text,
-					    pa1 = cont.getChild('n81').text,
-					    pq2 = cont.getChild('n84').text,
-					    pa2 = cont.getChild('n87').text;
+					    pq1 = cont.getChild('n92').getChild('title').text,
+					    pa1 = cont.getChild('n81').text;
 					if (!secpwd) {
 						cont.getChild('n75').text = '';cont.getChild('n75').displayObject.prompt = '请输入保险箱密码';cont.getTransition('t0').play();return;
-					}
-					if (!pq1) {
-						cont.getChild('n78').text = '';cont.getChild('n78').displayObject.prompt = '请输入密保问题';cont.getTransition('t1').play();return;
 					}
 					if (!pa1) {
 						cont.getChild('n81').text = '';cont.getChild('n81').displayObject.prompt = '请输入密保答案';cont.getTransition('t2').play();return;
 					}
-					if (!pq2) {
-						cont.getChild('n84').text = '';cont.getChild('n84').displayObject.prompt = '请输入密保问题';cont.getTransition('t3').play();return;
-					}
-					if (!pa2) {
-						cont.getChild('n87').text = '';cont.getChild('n87').displayObject.prompt = '请输入密保答案';cont.getTransition('t4').play();return;
-					}
 
 					getAjax('/pf/bacc.hori/user.secpwd.set', { userid: self._myid, pwd: secpwd });
-					getAjax('/pf/bacc.hori/user.pwdpro.set', { userid: self._myid, q: [{ q: pq1, ans: pa1 }, { q: pq2, ans: pa2 }] });
+					getAjax('/pf/bacc.hori/user.pwdpro.set', { userid: self._myid, q: [{ q: pq1, ans: pa1 }] });
 					self.hide();
 				});
 			}
