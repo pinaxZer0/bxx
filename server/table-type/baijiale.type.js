@@ -13,6 +13,12 @@ initSrvStat(function(err, s) {
 	if (!err) srv_state=s;
 })
 
+function shortenCoinStr(n) {
+	if (n>100000000) return g(printf('%.2f', n/100000000))+'亿';
+	if (n>10000) return g(printf('%.2f', n/10000))+'万';
+	return n;
+}
+
 const GAME_STATUS={
 	KAIJU:1,
 	FAPAI:2,
@@ -104,7 +110,7 @@ class Baijiale extends TableBase {
 				if (!seat) continue;
 				var u=seat.user;
 				if (u) {
-					obj.seats[i].user={id:u.id, nickname:u.nickname, face:u.dbuser.face, coins:u.coins, level:u.level, offline:seat.offline, showId:u.showId, profit:u.profit, bankerSets:u.bankerSets};
+					obj.seats[i].user={id:u.id, nickname:u.nickname, face:u.dbuser.face, coins:u.coins, level:u.level, offline:seat.offline, showId:u.showId, profit:u.profit, bankerSets:u.bankerSets, setprofit:u.setprofit};
 				}
 			}
 		}
@@ -132,9 +138,9 @@ class Baijiale extends TableBase {
 	newround() {
 		debugout(this.gamedata.roomid, 'new round');
 		this.q.push([
-			this.waitXiazhu.bind(this),
 			this.chooseBanker.bind(this),
 			this.adjustXianhong.bind(this),
+			this.waitXiazhu.bind(this),
 			this.fapai.bind(this),
 			this.jiesuan.bind(this)
 		]);
@@ -160,6 +166,10 @@ class Baijiale extends TableBase {
 		});
 	}
 	chooseBanker(cb) {
+		if (this.playerBankerWantQuit) {
+			this.gamedata.playerBanker=null;
+			this.playerBankerWantQuit=null;
+		}
 		var limitSets=playerBankerSetLimits;
 		if (this.gamedata.enroll.length==0) {
 			limitSets=14;
@@ -252,6 +262,7 @@ class Baijiale extends TableBase {
 				if (pack.xian>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
 				if (user.coins<pack.xian) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.xian+pack.xian)>(total.zhuang+gd.opt.maxZhu/3)) return user.send({err:'不能继续压闲'});
+				if (pack.xian>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲区下注了'+shortenCoinStr(pack.xian)});
 				deal.xian+=pack.xian;
 				total.xian+=pack.xian;
 				user.coins-=pack.xian;
@@ -261,6 +272,7 @@ class Baijiale extends TableBase {
 				if (pack.zhuang>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
 				if (user.coins<pack.zhuang) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
+				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
 				deal.zhuang+=pack.zhuang;
 				total.zhuang+=pack.zhuang;
 				user.coins-=pack.zhuang;
@@ -269,6 +281,7 @@ class Baijiale extends TableBase {
 				if (pack.he<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if (user.coins<pack.he) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.he+pack.he)>gd.opt.maxHe) return user.send({err:'不能继续压和'});
+				if (pack.he>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在和区下注了'+shortenCoinStr(pack.he)});
 				deal.he+=pack.he;
 				total.he+=pack.he;
 				user.coins-=pack.he;
@@ -277,6 +290,7 @@ class Baijiale extends TableBase {
 				if (pack.xianDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if (user.coins<pack.xianDui) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
+				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
 				deal.xianDui+=pack.xianDui;
 				total.xianDui+=pack.xianDui;
 				user.coins-=pack.xianDui;
@@ -285,6 +299,7 @@ class Baijiale extends TableBase {
 				if (pack.zhuangDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if (user.coins<pack.zhuangDui) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
+				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
 				deal.zhuangDui+=pack.zhuangDui;
 				total.zhuangDui+=pack.zhuangDui;
 				user.coins-=pack.zhuangDui;
@@ -366,19 +381,24 @@ class Baijiale extends TableBase {
 			var deal=gd.deal[k];
 			updObj.seats[k]={user:deal.user};
 			var orgCoins=deal.user.coins;
+			var userprofit=0;
 			for (var i=0;i<winArr.length; i++) {
 				var usercoins=deal[winArr[i]]
 				if (!usercoins) continue;
 				// 玩家赢钱
 				var delta=usercoins*factor[winArr[i]], d=Math.floor(delta*waterRatio);
 				water+=(delta-d);
+				userprofit+=d;
 				deal.user.coins+=(d+usercoins);
 				profit-=delta;
 				debugout('player win(id, qu, wins, minus water)', deal.user.id, winArr[i], delta, d);
 			}
 			for (var i=0; i<loseArr.length; i++) {
+				userprofit-=(deal[loseArr[i]]||0);
 				profit+=(deal[loseArr[i]]||0);
 			}
+			// deal.user.setprofit=userprofit;
+			deal.user.send({c:'setprofit', p:userprofit});
 			var newCoins=deal.user.coins;
 			delete deal.user;
 			g_db.games.insert({user:k, deal:deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
@@ -393,12 +413,16 @@ class Baijiale extends TableBase {
 				gd.playerBanker.coins+=p;
 				gd.playerBanker.profit+=p;
 				debugout('banker win(profit, minus water)', profit, p);
+				this.broadcast({c:'bankerprofit', p:p});
 			} else {
 				gd.playerBanker.coins+=profit;
 				gd.playerBanker.profit+=profit;
+				this.broadcast({c:'bankerprofit', p:profit});
 			}
 			// 如果是人的庄，只记录water，否则记录profit+water
 			profit=0;
+		} else {
+			this.broadcast({c:'bankerprofit', p:profit});
 		}
 		// this.profits.push({water:water, profit:profit, t:now, set:gd.setnum /*, playerSet:isPlayerBanker()*/});
 		debugout('sys win(profit, water)', profit, water);
@@ -450,16 +474,20 @@ class Baijiale extends TableBase {
 		var self=this;
 		switch (pack.c) {
 			case 'table.enroll':
-			if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) return comesfrom.senderr('正在做帅');
 			var idx=this.gamedata.enroll.findIndex(function(ele) {
 				return ele.id==comesfrom.id;
 			});
 			if (pack.in) {
-				// if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
+				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) return comesfrom.senderr('正在做帅');
+				if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
 				if (idx>=0) return comesfrom.senderr('已经在排队了');
 				if (comesfrom.coins>=enrollBaseCoins) this.gamedata.enroll.push(comesfrom);
 				else comesfrom.senderr('金豆不足200万，不能做帅');
 			} else {
+				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) {
+					this.playerBankerWantQuit=comesfrom.id;
+					return;
+				}
 				if (idx>=0) this.gamedata.enroll.splice(idx,1);
 			}
 			break;
