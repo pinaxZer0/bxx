@@ -354,25 +354,27 @@ class Baijiale extends TableBase {
 		const waterRatio=0.99;
 		var self=this, gd=this.gamedata;
 		var r=gd.his[gd.his.length-1];
-		var winArr=[];
-		if (r.win=='banker') {
-			winArr.push('zhuang');
-		}
-		if (r.win=='player') {
-			winArr.push('xian');
-		}
+		var winArr=[], loseArr, tieArr=[];
 		if (r.win=='tie') {
 			winArr.push('he');
+			tieArr=['zhuang', 'xian'];
+		} else {
+			if (r.win=='banker') {
+				winArr.push('zhuang');
+			}
+			if (r.win=='player') {
+				winArr.push('xian');
+			}
+			if (r.playerPair) {
+				winArr.push('xianDui');
+			}
+			if (r.bankerPair) {
+				winArr.push('zhuangDui');
+			}
 		}
-		if (r.playerPair) {
-			winArr.push('xianDui');
-		}
-		if (r.bankerPair) {
-			winArr.push('zhuangDui');
-		}
-		var params=winArr.slice();
+		var params=winArr.concat(tieArr);
 		params.unshift(['zhuang', 'xian', 'he', 'xianDui', 'zhuangDui']);
-		var loseArr=_.without.apply(_, params);
+		loseArr=_.without.apply(_, params);
 
 		var now=new Date();
 		var profit=0, water=0;
@@ -396,6 +398,9 @@ class Baijiale extends TableBase {
 			for (var i=0; i<loseArr.length; i++) {
 				userprofit-=(deal[loseArr[i]]||0);
 				profit+=(deal[loseArr[i]]||0);
+			}
+			for (var i=0; i<tieArr.length; i++) {
+				deal.user.coins+=deal[tieArr[i]];
 			}
 			// deal.user.setprofit=userprofit;
 			deal.user.send({c:'setprofit', p:userprofit});
