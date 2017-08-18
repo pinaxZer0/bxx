@@ -1,10 +1,10 @@
 {
   "4.4.js?1b384051debfa261ec1d": "4.4.js?1b384051debfa261ec1d",
-  "5.5.js?111e7cc0d135510d9709": "5.5.js?111e7cc0d135510d9709",
-  "6.6.js?86a2873ab7e475b84106": "6.6.js?86a2873ab7e475b84106",
-  "7.7.js?56e08c4011ba7e16e0aa": "7.7.js?56e08c4011ba7e16e0aa",
-  "baijiale.fui": "baijiale.fui?18eb3833e11f379b903568aad6039988",
-  "baijiale@atlas0.png": "baijiale@atlas0.png?d717c9020d7ebbf9c664c88729482aa1",
+  "5.5.js?a337527a5bc4216609e7": "5.5.js?a337527a5bc4216609e7",
+  "6.6.js?d023c8800d69852f6b34": "6.6.js?d023c8800d69852f6b34",
+  "7.7.js?6181ed1ae57613ad63be": "7.7.js?6181ed1ae57613ad63be",
+  "baijiale.fui": "baijiale.fui?9ac35258edde8f03f3f5b873765c9633",
+  "baijiale@atlas0.png": "baijiale@atlas0.png?dc43c3dd68a143a88c1b8af1ecdf6a92",
   "baijiale@atlas1.png": "baijiale@atlas1.png?111daabdd0c087f97202110caae1e604",
   "baijiale@atlas_kalk9z.jpg": "baijiale@atlas_kalk9z.jpg?fc19db51842f6bd7321be4fe6be20519",
   "baijiale@atlas_kalka1.jpg": "baijiale@atlas_kalka1.jpg?425d3081fb0b38f0887d12a165b89f6d",
@@ -37,9 +37,9 @@
   "clock.mp3": "clock.mp3?c1aced506c948d03533e355365409d60",
   "company.jpg": "company.jpg?dc7343d4519459a6151e805f84d6471f",
   "deal.mp3": "deal.mp3?0e98b6ad29bce0d9db74758644240512",
-  "default.js": "1.default.js?9bad11715efd39e60cbe",
-  "entry.js": "entry.js?1d7bf1b9af79d025663e",
-  "inapp.js": "2.inapp.js?d713b4fc21405aa4d987",
+  "default.js": "1.default.js?8e18e373585391fd661d",
+  "entry.js": "entry.js?ba6de48471762621cb4a",
+  "inapp.js": "2.inapp.js?e4adde07df11ba21eb4a",
   "ingameBGMMono.mp3": "ingameBGMMono.mp3?e2f1dae4237ad6d5be9aacbcd2975699",
   "loader.js": "loader.js?02cd43f053e5542e49a6",
   "menuBGMMono.mp3": "menuBGMMono.mp3?ee336442b6972f6d6d9b7f224bcc2e20",
@@ -58,5 +58,5 @@
   "playwin.mp3": "playwin.mp3?4854851a8b397ba9b21d87ef54e83394",
   "pleasebet.mp3": "pleasebet.mp3?414cc71ec543e8921a3bcc630db8b3b4",
   "tie.mp3": "tie.mp3?498dc41dcd1847af774710878480c743",
-  "wechat.js": "3.wechat.js?320d1257b8d5788f8d27"
+  "wechat.js": "3.wechat.js?dfc70ae541cd84deba31"
 }

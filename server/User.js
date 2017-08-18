@@ -12,7 +12,7 @@ var conf={room:{}};
 
 // 此处修改修改成你的内容
 var default_user={
-	coins:1000, savedMoney:0, level:1, face:'ui://vb2dadv6l8vr7r', tickets:1, friends:[]
+	coins:0, savedMoney:0, level:1, face:'ui://vb2dadv6l8vr7r', tickets:1, friends:[]
 };
 
 function getDbuser(userid, proj, cb) {
@@ -317,6 +317,13 @@ class User extends EventEmitter {
 	set bank (o) {
 		this.dbuser.bank=o;
 		this.send({user:{bank:o}});
+	}
+	get memo() {
+		return this.dbuser.memo;
+	}
+	set memo(m) {
+		this.dbuser.memo=m;
+		this.send({user:{memo:m}});
 	}
 	storeMail(from, content, cb) {
 		var self=this;
@@ -648,9 +655,11 @@ class User extends EventEmitter {
 				});
 			break;
 			case 'safe.deposit':
-				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				pack.coins=Number(pack.coins);
+				if (isNaN(pack.coins)) return self.senderr('参数有误');
+				if (!pack.coins) return;
 				if (self.coins<pack.coins) return self.senderr('现金不足');
+				// g_db.p.translog.insert({_t:new Date(), act:'存入保险箱', coins:-pack.coins, id:self.id});
 				self.savedMoney+=pack.coins;
 				self.coins-=pack.coins;
 			break;
@@ -658,6 +667,7 @@ class User extends EventEmitter {
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				pack.coins=Number(pack.coins);
 				if (self.savedMoney<pack.coins) return self.senderr('保险箱中没有那么多资金');
+				// g_db.p.translog.insert({_t:new Date(), act:'提取现金', coins:pack.coins, id:self.id});
 				self.savedMoney-=pack.coins;
 				self.coins+=pack.coins;
 			break;
@@ -700,16 +710,21 @@ class User extends EventEmitter {
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				pack.coins=Number(pack.coins);
 				if (pack.coins<=0) return self.senderr('金豆数量不对');
-				if (pack.coins>this.coins) return this.senderr('没有足够的金豆');
+				if (pack.coins>this.savedMoney) return this.senderr('没有足够的金豆');
 				if (pack.target==this.showId) return this.senderr('不能转给自己');
 				User.fromShowID(pack.target, function(err, usr) {
 					if (err) return self.senderr(err);
-					self.coins-=pack.coins;
-					usr.coins+=pack.coins;
+					g_db.p.translog.insert({_t:new Date(), act:'转账:'+usr.nickname, coins:-pack.coins, id:self.id});
+					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname, coins:pack.coins, id:usr.id});
+					self.savedMoney-=pack.coins;
+					usr.savedMoney+=pack.coins;
 				});
 			break;
 			case 'user.setnickname':
 				if (pack.nickname) this.nickname=pack.nickname;
+			break;
+			case 'user.setmemo':
+				if (pack.m && pack.m!=this.memo) this.memo=pack.m;
 			break;
 			case 'user.setface':
 				if (pack.face) this.face=pack.face;
@@ -764,17 +779,25 @@ class User extends EventEmitter {
 					if (err) return self.senderr(err);
 					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
 				});
-				self.senderr('必须制定id或者nickname');
+				self.senderr('必须指定id或者nickname');
+			break;
+			case 'user.translog':
+				g_db.p.translog.find({id:self.id}).limit(100).sort({_t:-1}).toArray(function(err, arr) {
+					if (err) return self.senderr(err);
+					self.send({c:'user.translog', d:arr});
+				});
 			break;
 			case 'admin.addcoins':
 				if (!self.dbuser.isAdmin) return self.senderr('无权限');
-				if (pack.userid==null || !pack.coins) return self.senderr('参数错误');
+				pack.coins=Number(pack.coins);
+				if (pack.userid==null || !pack.coins || isNaN(pack.coins)) return self.senderr('参数错误');
 				User.fromID(pack.userid, {coins:true}, function(err, user) {
 					if (err) return self.senderr(err);
 					getDB(function(err, db, easym) {
 						if (err) return self.senderr(err);
 						user.coins+=pack.coins;
 						db.adminlog.insert({time:new Date(), target:user.id, targetName:user.nickname, coins:pack.coins, operatorName:self.nickname, operator:self.id});
+						db.translog.insert({_t:new Date(), id:user.id, act:'转入:活动赠送',coins:pack.coins});
 					});
 				});
 			break;

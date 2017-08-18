@@ -46,12 +46,15 @@ function chkpwd(userid, pwd, cb) {
 }
 
 function afterUserIn(err, pack, ws, dbuser) {
+	afterUserInStep2(err, pack, ws, dbuser);
+}
+function afterUserInStep2(err, pack, ws, dbuser) {
 	if (err) return ws.sendp({err:err});
 	if (dbuser) {
-		if (dbuser.block>new Date()) return ws.sendp({err:{message:'账号被封停', view:'login'}});
+		if (dbuser.block>new Date()) return ws.sendp({c:'lgerr',msg:'账号被封停', view:'login'});
 		if (!dbuser.__created) {
-			if (dbuser.pwd && dbuser.pwd!=pack.pwd) return ws.sendp({err:{message:'账号密码错', view:'login'}});
-			ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd)}});
+			if (dbuser.pwd && dbuser.pwd!=pack.pwd) return ws.sendp({c:'lgerr', msg:'账号密码错', view:'login'});
+			ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd), memo:dbuser.memo}});
 		}
 		else {
 			dbuser.pwd=pack.pwd;
@@ -63,7 +66,7 @@ function afterUserIn(err, pack, ws, dbuser) {
 				dbuser.province=pack.province;
 				dbuser.city=pack.city;
 				dbuser.coins=dbuser.coins;
-				ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd)}});
+				ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd), memo:dbuser.memo}});
 				delete dbuser.__created;
 			});
 		}
@@ -144,18 +147,22 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 					})
 				break;
 				case 'reg':
-					createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
-						if (err) return ws.sendp({err:err});
-						if (!dbuser.__created) return ws.sendp({err:'用户已存在'});
-						dbuser.pwd=pack.pwd;
-						ws.user=new User(ws, dbuser);
-						dbuser.nickname=pack.nickname||pack.id;
-						pack.face && (dbuser.face=pack.face);
-						ws.sendp({c:'showview', v:'hall', user:dbuser, seq:1});
-						onlineUsers.add(ws.user);
-						//ws.sendp({user:{id:ws.user.id, nickname:ws.user.nickname, exp:ws.user.exp, }})
-						if (pack.room) ws.user.join(pack.room);
-						broadcast({c:'userin', userid:pack.id, nick:ws.user.nickname}, ws.user);
+					db.users.find({nickname:(pack.nickname||pack.id)}).limit(1).toArray(function(err, arr) {
+						if (err) return ws.sendp({c:'regerr', msg:err.message, view:'login'});
+						if (arr.length>0) return ws.sendp({c:'regerr', msg:'昵称重复', view:'login', arr:arr});
+						createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
+							if (err) return ws.sendp({err:err});
+							if (!dbuser.__created) return ws.sendp({err:'用户已存在'});
+							dbuser.pwd=pack.pwd;
+							ws.user=new User(ws, dbuser);
+							dbuser.nickname=pack.nickname||pack.id;
+							pack.face && (dbuser.face=pack.face);
+							ws.sendp({c:'showview', v:'hall', user:dbuser, seq:1});
+							onlineUsers.add(ws.user);
+							//ws.sendp({user:{id:ws.user.id, nickname:ws.user.nickname, exp:ws.user.exp, }})
+							if (pack.room) ws.user.join(pack.room);
+							broadcast({c:'userin', userid:pack.id, nick:ws.user.nickname}, ws.user);
+						});
 					});
 				break;
 				case 'rol':
@@ -163,9 +170,13 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 						debugout('already online, kick old');
 						afterUserIn(null, pack, ws, onlineUsers.get(pack.id).dbuser);
 					} 
-					else createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
-						debugout('new one');
-						afterUserIn(err, pack, ws, dbuser);
+					else db.users.find({nickname:(pack.nickname||pack.id)}).limit(1).toArray(function(err, arr) {
+						if (err) return ws.sendp({c:'regerr', msg:err.message, view:'login'});
+						if (arr.length>0) return ws.sendp({c:'regerr', msg:'昵称重复', view:'login', arr:arr});
+						createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
+							debugout('new one');
+							afterUserIn(err, pack, ws, dbuser);
+						});
 					});
 				break;
 				case 'alluser':
