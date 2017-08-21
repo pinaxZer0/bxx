@@ -38,7 +38,7 @@
   "company.jpg": "company.jpg?dc7343d4519459a6151e805f84d6471f",
   "deal.mp3": "deal.mp3?0e98b6ad29bce0d9db74758644240512",
   "default.js": "1.default.js?8e18e373585391fd661d",
-  "entry.js": "entry.js?039bc2da9ae379b09d0e",
+  "entry.js": "entry.js?87da3d182046bfcef9ca",
   "inapp.js": "2.inapp.js?e4adde07df11ba21eb4a",
   "ingameBGMMono.mp3": "ingameBGMMono.mp3?e2f1dae4237ad6d5be9aacbcd2975699",
   "loader.js": "loader.js?02cd43f053e5542e49a6",
@@ -58,5 +58,8 @@
   "playwin.mp3": "playwin.mp3?4854851a8b397ba9b21d87ef54e83394",
   "pleasebet.mp3": "pleasebet.mp3?414cc71ec543e8921a3bcc630db8b3b4",
   "tie.mp3": "tie.mp3?498dc41dcd1847af774710878480c743",
-  "wechat.js": "3.wechat.js?dfc70ae541cd84deba31"
+  "wechat.js": "3.wechat.js?dfc70ae541cd84deba31",
+  "5.5.js?1f3f9c5a25e268aecc4e": "5.5.js?1f3f9c5a25e268aecc4e",
+  "6.6.js?88d68a47be37e426615f": "6.6.js?88d68a47be37e426615f",
+  "7.7.js?6c811f38583fb8d1a08c": "7.7.js?6c811f38583fb8d1a08c"
 }
