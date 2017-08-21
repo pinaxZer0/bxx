@@ -287,7 +287,7 @@ class Baijiale extends TableBase {
 				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
 				deal.zhuang+=pack.zhuang;
 				total.zhuang+=pack.zhuang;
-				user.coins-=pack.zhuang;
+				// user.coins-=pack.zhuang;
 			}
 			else if (pack.he) {
 				if (pack.he<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
@@ -400,7 +400,7 @@ class Baijiale extends TableBase {
 				var usercoins=deal[winArr[i]]
 				if (!usercoins) continue;
 				// 玩家赢钱
-				var delta=usercoins*factor[winArr[i]], d=Math.floor(delta*waterRatio);
+				var delta=usercoins*factor[winArr[i]], d=Math.round(delta*waterRatio);
 				water+=(delta-d);
 				userprofit+=d;
 				// deal.user.coins+=(d+usercoins);
