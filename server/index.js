@@ -170,14 +170,16 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 						debugout('already online, kick old');
 						afterUserIn(null, pack, ws, onlineUsers.get(pack.id).dbuser);
 					} 
-					else db.users.find({nickname:(pack.nickname||pack.id)}).limit(1).toArray(function(err, arr) {
-						if (err) return ws.sendp({c:'regerr', msg:err.message, view:'login'});
-						if (arr.length>0) return ws.sendp({c:'regerr', msg:'昵称重复', view:'login', arr:arr});
+					else 
 						createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
 							debugout('new one');
-							afterUserIn(err, pack, ws, dbuser);
+							if (dbuser.__created) db.users.find({nickname:(pack.nickname||pack.id)}).limit(1).toArray(function(err, arr) {
+								if (err) return ws.sendp({c:'regerr', msg:err.message, view:'login'});
+								if (arr.length>0) return ws.sendp({c:'regerr', msg:'昵称重复', view:'login', arr:arr});
+								afterUserIn(err, pack, ws, dbuser);
+							});
+							else afterUserIn(err, pack, ws, dbuser);
 						});
-					});
 				break;
 				case 'alluser':
 					ws.sendp({c:'alluser', u:onlineUsers.all});
