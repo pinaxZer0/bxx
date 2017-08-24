@@ -267,12 +267,15 @@ class Baijiale extends TableBase {
 			}
 			if (deal.sealed) return;
 			var userTotal=deal.xian+deal.zhuang+deal.xianDui+deal.zhuangDui+deal.he;
-			if (user.coins+userTotal>=playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
+			var curDeal=(pack.xian||0)+(pack.zhuang||0)+(pack.xianDui||0)+(pack.zhuangDui||0)+(pack.he||0);
+			var total_deal=curDeal+userTotal;
+			if (total_deal>=playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
+			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
+			
 			debugout(pack, total);
 			if (pack.xian) {
 				if (pack.xian<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
 				if (pack.xian>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
-				if (user.coins<pack.xian) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.xian+pack.xian)>(total.zhuang+gd.opt.maxZhu/3)) return user.send({err:'不能继续压闲'});
 				if (pack.xian>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲区下注了'+shortenCoinStr(pack.xian)});
 				deal.xian+=pack.xian;
@@ -282,7 +285,6 @@ class Baijiale extends TableBase {
 			else if (pack.zhuang) {
 				if (pack.zhuang<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
 				if (pack.zhuang>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
-				if (user.coins<pack.zhuang) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
 				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
 				deal.zhuang+=pack.zhuang;
@@ -291,7 +293,6 @@ class Baijiale extends TableBase {
 			}
 			else if (pack.he) {
 				if (pack.he<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
-				if (user.coins<pack.he) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.he+pack.he)>gd.opt.maxHe) return user.send({err:'不能继续压和'});
 				if (pack.he>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在和区下注了'+shortenCoinStr(pack.he)});
 				deal.he+=pack.he;
@@ -300,7 +301,6 @@ class Baijiale extends TableBase {
 			}
 			else if (pack.xianDui) {
 				if (pack.xianDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
-				if (user.coins<pack.xianDui) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
 				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
 				deal.xianDui+=pack.xianDui;
@@ -309,7 +309,6 @@ class Baijiale extends TableBase {
 			}
 			else if (pack.zhuangDui) {
 				if (pack.zhuangDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
-				if (user.coins<pack.zhuangDui) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 				if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
 				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
 				deal.zhuangDui+=pack.zhuangDui;
