@@ -311,6 +311,13 @@ class User extends EventEmitter {
 		this.dbuser.coins=n;
 		this.send({user:{coins:n}});
 	}
+	set lockedCoins(n) {
+		this._lockedCoins=n;
+		this.send({user:{lockedCoins:n}, seq:1});
+	}
+	get lockedCoins() {
+		return this._lockedCoins;
+	}
 	get bank() {
 		return this.dbuser.bank;
 	}
@@ -658,7 +665,8 @@ class User extends EventEmitter {
 				pack.coins=Number(pack.coins);
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				if (!pack.coins) return;
-				if (self.coins<pack.coins) return self.senderr('现金不足');
+				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能存钱');
+				if ((self.coins-(self.lockedCoins||0))<pack.coins) return self.senderr('现金不足');
 				// g_db.p.translog.insert({_t:new Date(), act:'存入保险箱', coins:-pack.coins, id:self.id});
 				self.savedMoney+=pack.coins;
 				self.coins-=pack.coins;
@@ -795,9 +803,15 @@ class User extends EventEmitter {
 					if (err) return self.senderr(err);
 					getDB(function(err, db, easym) {
 						if (err) return self.senderr(err);
-						user.coins+=pack.coins;
+						if (user.coins<0) return self.senderr('用户分数异常，请联系技术');
+						if (pack.coins<0 && user.coins+pack.coins<0) {
+							user.coins=0;
+							pack.coins=-user.coins;
+						}
+						else user.coins+=pack.coins;
 						db.adminlog.insert({time:new Date(), target:user.id, targetName:user.nickname, coins:pack.coins, operatorName:self.nickname, operator:self.id});
-						db.translog.insert({_t:new Date(), id:user.id, act:'转入:活动赠送',coins:pack.coins});
+						db.translog.insert({_t:new Date(), id:user.id, act:pack.coins>=0?'转入:活动赠送':'处罚',coins:pack.coins});
+						self.send({c:'admin.addcoins', newcoin:user.coins});
 					});
 				});
 			break;

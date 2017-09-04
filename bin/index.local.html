@@ -16,7 +16,7 @@
 
 	<script src="js/jquery.min.js"></script>
 
-	<script>window.server='http://123.1.195.130:7008/'</script>
+	<script>window.server='http://bjl2000.com:7009/'</script>
 	<!--<script src="entry.js"></script>-->
 	<script>
 	    function loadScript(src, callback) {
@@ -38,6 +38,11 @@
 				e.preventDefault();
 				if (confirm('确定退出吗？')) navigator.app.exitApp();
 			}, false);
+			if (window.AndroidFullScreen) {
+				AndroidFullScreen.immersiveMode(function() {}, function() {});
+			} else if (window.StatusBar) {
+				StatusBar.hide();
+			}
 			loadScript('./entry.js');
 		}
 		document.addEventListener('deviceready', onDeviceReady, false);	

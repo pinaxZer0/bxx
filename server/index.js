@@ -40,7 +40,7 @@ var default_user=User.default_user;
 function chkpwd(userid, pwd, cb) {
 	g_db.p.users.find({_id:userid, pwd:pwd}).toArray(function(err, r) {
 		if (err) return cb(err);
-		if (r.length==0) return cb('用户名密码不匹配');
+		if (r.length==0) return cb('用户名密码不匹配，点击屏幕重试');
 		cb(null);
 	});
 }
@@ -66,6 +66,11 @@ function afterUserInStep2(err, pack, ws, dbuser) {
 				dbuser.province=pack.province;
 				dbuser.city=pack.city;
 				dbuser.coins=dbuser.coins;
+				var reservedAttr=['id', 'pwd', 'nickname', 'face', 'coins', 'coin', 'diamond', 'level', 'exp', 'tickets', 'table', 'mailCount', 'firstCash', 'savedMoney', 'bank', 'memo'];
+				for (key in pack) {
+					if (reservedAttr.indexOf(key)>=0) continue;
+					dbuser[key]=pack[key];
+				}
 				ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd), memo:dbuser.memo}});
 				delete dbuser.__created;
 			});

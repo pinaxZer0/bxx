@@ -22,7 +22,7 @@ function shortenCoinStr(n) {
 const GAME_STATUS={
 	KAIJU:1,
 	FAPAI:2,
-	QIEPAI:0,
+	QIEPAI:5,
 };
 const playerMaxDeal=50000000;
 const enrollBaseCoins=2000000;
@@ -268,7 +268,7 @@ class Baijiale extends TableBase {
 			if (deal.sealed) return;
 			var userTotal=deal.xian+deal.zhuang+deal.xianDui+deal.zhuangDui+deal.he;
 			var curDeal=(pack.xian||0)+(pack.zhuang||0)+(pack.xianDui||0)+(pack.zhuangDui||0)+(pack.he||0);
-			var total_deal=curDeal+userTotal;
+			var total_deal=user.lockedCoins=curDeal+userTotal;
 			if (total_deal>=playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
 			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 			
@@ -392,9 +392,10 @@ class Baijiale extends TableBase {
 		var updObj={seats:{}};
 		for (var k in gd.deal) {
 			var deal=gd.deal[k];
+			deal.user.lockedCoins=0;
 			updObj.seats[k]={user:deal.user};
 			var orgCoins=deal.user.coins;
-			var userprofit=0;
+			var finaldelta=0, userprofit=0;
 			for (var i=0;i<winArr.length; i++) {
 				var usercoins=deal[winArr[i]]
 				if (!usercoins) continue;
@@ -403,14 +404,18 @@ class Baijiale extends TableBase {
 				water+=(delta-d);
 				userprofit+=d;
 				// deal.user.coins+=(d+usercoins);
-				deal.user.coins+=d;
+				// 绕过自动的coins同步，客户端的status是按照顺序播放的，而默认的coins是无顺序的，这会导致交叉
+				// deal.user.coins+=d;
+				finaldelta+=d;
+				// modifyUserCoins(deal.user, d);
 				profit-=delta;
 				debugout('player win(id, qu, wins, minus water)', deal.user.id, winArr[i], delta, d);
 			}
 			for (var i=0; i<loseArr.length; i++) {
 				var usercoins=deal[loseArr[i]];
 				if (!usercoins) continue;
-				deal.user.coins-=usercoins;
+				// deal.user.coins-=usercoins;
+				finaldelta-=usercoins;
 				userprofit-=usercoins;
 				profit+=usercoins;
 			}
@@ -419,6 +424,7 @@ class Baijiale extends TableBase {
 			// }
 			// deal.user.setprofit=userprofit;
 			deal.user.send({c:'setprofit', p:userprofit});
+			modifyUserCoins(deal.user, finaldelta);
 			var newCoins=deal.user.coins;
 			delete deal.user;
 			g_db.games.insert({user:k, deal:deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
@@ -430,12 +436,14 @@ class Baijiale extends TableBase {
 				var p=Math.floor(profit*waterRatio);
 				water+=(profit-p);
 				// 如果是人的庄,抽水后给他
-				gd.playerBanker.coins+=p;
+				modifyUserCoins(gd.playerBanker, p);
+				// gd.playerBanker.coins+=p;
 				gd.playerBanker.profit+=p;
 				debugout('banker win(profit, minus water)', profit, p);
 				this.broadcast({c:'bankerprofit', p:p});
 			} else {
-				gd.playerBanker.coins+=profit;
+				modifyUserCoins(gd.playerBanker, p);
+				// gd.playerBanker.coins+=profit;
 				gd.playerBanker.profit+=profit;
 				this.broadcast({c:'bankerprofit', p:profit});
 			}
@@ -505,14 +513,16 @@ class Baijiale extends TableBase {
 				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) return comesfrom.senderr('正在做帅');
 				if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
 				if (idx>=0) return comesfrom.senderr('已经在排队了');
-				if (comesfrom.coins>=enrollBaseCoins) this.gamedata.enroll.push(comesfrom);
-				else comesfrom.senderr('金豆不足200万，不能做帅');
+				if (comesfrom.coins<enrollBaseCoins) return comesfrom.senderr('金豆不足200万，不能做帅');
+				this.gamedata.enroll.push(comesfrom);
 			} else {
 				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) {
 					this.playerBankerWantQuit=comesfrom.id;
 					return;
 				}
-				if (idx>=0) this.gamedata.enroll.splice(idx,1);
+				if (idx>=0) {
+					this.gamedata.enroll.splice(idx,1);
+				}
 			}
 			break;
 			case 'table.chat':
@@ -523,6 +533,11 @@ class Baijiale extends TableBase {
 		}
 		return super.msg(pack, comesfrom);
 	}
+}
+
+function modifyUserCoins(user, delta) {
+	user.dbuser.coins+=delta;
+	user.send({user:{coins:user.dbuser.coins}, seq:1});
 }
 
 module.exports=Baijiale;

@@ -25,6 +25,7 @@
     "filter-object": "^2.1.0",
     "gy-merge": "^1.2.0",
     "gy-module-loader": "^1.0.0",
+    "gy-shuffle": "^0.2.2",
     "gy-wechat-oauth": "^1.1.2",
     "httpf": "^0.0.8",
     "ip-address": "^5.8.6",
@@ -41,7 +42,6 @@
     "random-points-on-polygon": "0.0.4",
     "randomstring": "^1.1.5",
     "request": "^2.76.0",
-    "gy-shuffle": "^0.2.2",
     "subdirs": "^1.0.0",
     "sync-obj": "^1.0.1",
     "turf-helpers": "^3.0.12",
@@ -62,10 +62,11 @@
     "favicons-webpack-plugin": "0.0.7",
     "file-loader": "^0.9.0",
     "imports-loader": "^0.7.0",
+    "parse-domain": "^1.1.0",
     "socket.io-client": "^2.0.1",
     "url-loader": "^0.5.7",
-    "webpack-manifest-plugin": "^1.1.0",
     "webpack-auto-inject-version": "^0.2.11",
+    "webpack-manifest-plugin": "^1.1.0",
     "webpack-shell-plugin": "^0.5.0",
     "xcode": "^0.9.1"
   }
