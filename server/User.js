@@ -313,7 +313,7 @@ class User extends EventEmitter {
 	}
 	set lockedCoins(n) {
 		this._lockedCoins=n;
-		this.send({user:{lockedCoins:n}, seq:1});
+		this.send({user:{lockedCoins:n}});
 	}
 	get lockedCoins() {
 		return this._lockedCoins;
@@ -744,9 +744,9 @@ class User extends EventEmitter {
 				this.send({user:{hasSecpwd:true}});
 			break;
 			case 'user.secpwd.verify':
-				if (!pack.pwd) return this.send({c:'user.secpwd.verify', err:'参数有误'});
+				if (!pack.pwd) return this.send({c:'user.secpwd.verify', _err:'参数有误'});
 				if (pack.pwd==this.dbuser.secpwd) return this.send({c:'user.secpwd.verify', result:'ok'});
-				else return this.send({c:'user.secpwd.verify', err:'密码不符'});
+				else return this.send({c:'user.secpwd.verify', _err:'密码不符'});
 			break;
 			case 'user.pwdpro.set':
 				if (!pack.q) return this.senderr('参数有误');

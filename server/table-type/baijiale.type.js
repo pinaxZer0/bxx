@@ -22,6 +22,7 @@ function shortenCoinStr(n) {
 const GAME_STATUS={
 	KAIJU:1,
 	FAPAI:2,
+	JIESUAN:3,
 	QIEPAI:5,
 };
 const playerMaxDeal=50000000;
@@ -268,10 +269,11 @@ class Baijiale extends TableBase {
 			if (deal.sealed) return;
 			var userTotal=deal.xian+deal.zhuang+deal.xianDui+deal.zhuangDui+deal.he;
 			var curDeal=(pack.xian||0)+(pack.zhuang||0)+(pack.xianDui||0)+(pack.zhuangDui||0)+(pack.he||0);
-			var total_deal=user.lockedCoins=curDeal+userTotal;
+			var total_deal=curDeal+userTotal;
 			if (total_deal>=playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
 			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
-			
+			user.lockedCoins=total_deal;
+
 			debugout(pack, total);
 			if (pack.xian) {
 				if (pack.xian<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
@@ -282,7 +284,7 @@ class Baijiale extends TableBase {
 				total.xian+=pack.xian;
 				// user.coins-=pack.xian;
 			}
-			else if (pack.zhuang) {
+			if (pack.zhuang) {
 				if (pack.zhuang<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
 				if (pack.zhuang>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
 				if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
@@ -291,7 +293,7 @@ class Baijiale extends TableBase {
 				total.zhuang+=pack.zhuang;
 				// user.coins-=pack.zhuang;
 			}
-			else if (pack.he) {
+			if (pack.he) {
 				if (pack.he<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if ((total.he+pack.he)>gd.opt.maxHe) return user.send({err:'不能继续压和'});
 				if (pack.he>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在和区下注了'+shortenCoinStr(pack.he)});
@@ -299,7 +301,7 @@ class Baijiale extends TableBase {
 				total.he+=pack.he;
 				// user.coins-=pack.he;
 			}
-			else if (pack.xianDui) {
+			if (pack.xianDui) {
 				if (pack.xianDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
 				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
@@ -307,7 +309,7 @@ class Baijiale extends TableBase {
 				total.xianDui+=pack.xianDui;
 				// user.coins-=pack.xianDui;
 			}
-			else if (pack.zhuangDui) {
+			if (pack.zhuangDui) {
 				if (pack.zhuangDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
 				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
@@ -360,7 +362,7 @@ class Baijiale extends TableBase {
 	}
 	jiesuan(cb) {
 		debugout(this.roomid, 'jiesuan');
-		this.gamedata.status=0;
+		this.gamedata.status=GAME_STATUS.JIESUAN;
 		const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
 		const waterRatio=0.99;
 		var self=this, gd=this.gamedata;
@@ -390,50 +392,54 @@ class Baijiale extends TableBase {
 		var now=new Date();
 		var profit=0, water=0;
 		var updObj={seats:{}};
+		var user_win_list=[];
 		for (var k in gd.deal) {
 			var deal=gd.deal[k];
 			deal.user.lockedCoins=0;
 			updObj.seats[k]={user:deal.user};
-			var orgCoins=deal.user.coins;
-			var finaldelta=0, userprofit=0;
+			// var orgCoins=deal.user.coins;
+			var userwin=0, userlose=0;
 			for (var i=0;i<winArr.length; i++) {
 				var usercoins=deal[winArr[i]]
 				if (!usercoins) continue;
 				// 玩家赢钱
-				var delta=usercoins*factor[winArr[i]], d=Math.round(delta*waterRatio);
-				water+=(delta-d);
-				userprofit+=d;
+				var delta=usercoins*factor[winArr[i]];
+				userwin+=delta;
+				// var delta=usercoins*factor[winArr[i]], d=Math.round(delta*waterRatio);
+				// water+=(delta-d);
+				// userprofit+=d;
 				// deal.user.coins+=(d+usercoins);
 				// 绕过自动的coins同步，客户端的status是按照顺序播放的，而默认的coins是无顺序的，这会导致交叉
 				// deal.user.coins+=d;
-				finaldelta+=d;
+				// finaldelta+=d;
 				// modifyUserCoins(deal.user, d);
 				profit-=delta;
-				debugout('player win(id, qu, wins, minus water)', deal.user.id, winArr[i], delta, d);
+				debugout('player win(id, qu, wins)', deal.user.id, winArr[i], delta);
 			}
 			for (var i=0; i<loseArr.length; i++) {
 				var usercoins=deal[loseArr[i]];
 				if (!usercoins) continue;
 				// deal.user.coins-=usercoins;
-				finaldelta-=usercoins;
-				userprofit-=usercoins;
+				// finaldelta-=usercoins;
+				userlose+=usercoins;
 				profit+=usercoins;
 			}
 			// for (var i=0; i<tieArr.length; i++) {
 			// 	deal.user.coins+=deal[tieArr[i]];
 			// }
 			// deal.user.setprofit=userprofit;
-			deal.user.send({c:'setprofit', p:userprofit});
-			modifyUserCoins(deal.user, finaldelta);
-			var newCoins=deal.user.coins;
-			delete deal.user;
-			g_db.games.insert({user:k, deal:deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
+
+			// deal.user.send({c:'setprofit', p:userprofit});
+			// modifyUserCoins(deal.user, finaldelta);
+			var u=deal.user;
+			deal.user=undefined;
+			user_win_list.push({user:u, deal:deal, win:userwin, lose:userlose});
 		}
 		// profit里是庄家的盈利，庄盈利
 		if (this.isPlayerBanker()) {
 			updObj.seats[gd.playerBanker.id]={user:gd.playerBanker};
 			if (profit>0) {
-				var p=Math.floor(profit*waterRatio);
+				var p=Math.round(profit*waterRatio);
 				water+=(profit-p);
 				// 如果是人的庄,抽水后给他
 				modifyUserCoins(gd.playerBanker, p);
@@ -442,7 +448,20 @@ class Baijiale extends TableBase {
 				debugout('banker win(profit, minus water)', profit, p);
 				this.broadcast({c:'bankerprofit', p:p});
 			} else {
-				modifyUserCoins(gd.playerBanker, p);
+				if (profit+gd.playerBanker.coins<0) {
+					// 调整用户盈利
+					var orgProfit=profit;
+					profit=-gd.playerBanker.coins;
+					var total_charge=0, l=user_win_list.length;
+					for (var i=0; i<l; i++) {
+						total_charge+=user_win_list[i].win-user_win_list[i].lose;
+					}
+					var adjustR=total_charge/gd.playerBanker.coins;
+					for (var i=0; i<l; i++) {
+						if (user_win_list[i].win) user_win_list[i].win=adjustR*user_win_list[i].win;
+					}
+				}
+				modifyUserCoins(gd.playerBanker, profit);
 				// gd.playerBanker.coins+=profit;
 				gd.playerBanker.profit+=profit;
 				this.broadcast({c:'bankerprofit', p:profit});
@@ -451,6 +470,21 @@ class Baijiale extends TableBase {
 			profit=0;
 		} else {
 			this.broadcast({c:'bankerprofit', p:profit});
+		}
+		// send user profit
+		for (var i=0; i<user_win_list.length; i++) {
+			var obj=user_win_list[i];
+			var delta=obj.win-obj.lose;
+			if (delta>0) {
+				var d=Math.round(waterRatio*delta);
+				water+=(delta-d);
+				delta=d;
+			}
+			var orgCoins=obj.user.coins;
+			obj.user.send({c:'setprofit', p:delta});
+			modifyUserCoins(obj.user, delta);
+			var newCoins=obj.user.coins;
+			g_db.games.insert({user:obj.user.id, deal:obj.deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
 		}
 		// this.profits.push({water:water, profit:profit, t:now, set:gd.setnum /*, playerSet:isPlayerBanker()*/});
 		debugout('sys win(profit, water)', profit, water);
@@ -537,7 +571,7 @@ class Baijiale extends TableBase {
 
 function modifyUserCoins(user, delta) {
 	user.dbuser.coins+=delta;
-	user.send({user:{coins:user.dbuser.coins}, seq:1});
+	user.send({user:{coins:user.dbuser.coins}});
 }
 
 module.exports=Baijiale;
