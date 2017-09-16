@@ -7,7 +7,7 @@ var printf=require('printf');
 var ObjectID = require('mongodb').ObjectID;
 var debugout=require('debugout')(require('yargs').argv.debugout);
 var alltables=require('./tables.js');
-
+var randstring=require('randomstring').generate;
 var conf={room:{}};
 
 // 此处修改修改成你的内容
@@ -107,12 +107,12 @@ class User extends EventEmitter {
 		}
 		if (typeof userid=='string') {
 			var user=onlineUsers.get(userid);
-			if (user) return cb(null, user);
+			if (user) return cb(null, user, true);
 		}
 		getDB(function(err, db, easym) {
 			easym.createDbJson(db, {col:db.users, key:userid, default:default_user,projection:proj}, function(err, dbu) {
 				if (err) return cb(err);
-				cb(null, new User({sendp:function(){}}, dbu));
+				cb(null, new User({sendp:function(){}}, dbu), false);
 			});
 		})
 	}
@@ -722,8 +722,8 @@ class User extends EventEmitter {
 				if (pack.target==this.showId) return this.senderr('不能转给自己');
 				User.fromShowID(pack.target, function(err, usr) {
 					if (err) return self.senderr(err);
-					g_db.p.translog.insert({_t:new Date(), act:'转账:'+usr.nickname, coins:-pack.coins, id:self.id});
-					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname, coins:pack.coins, id:usr.id});
+					g_db.p.translog.insert({_t:new Date(), act:'转账:'+usr.nickname+'('+usr.showId+')', coins:-pack.coins, id:self.id});
+					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+usr.showId+')', coins:pack.coins, id:usr.id});
 					self.savedMoney-=pack.coins;
 					usr.savedMoney+=pack.coins;
 				});
@@ -877,7 +877,27 @@ class User extends EventEmitter {
 					self.send({c:'admin.rm', r:'ok'});
 				});
 			break;
-			default:
+			case 'admin.resetpwd':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				if  (pack.userid==null) return self.senderr('参数错误');
+				User.fromID(pack.userid, {pwd:true}, function(err, user) {
+					if (err) return self.senderr(err);
+					user.dbuser.pwd=randstring(5);
+					self.send({c:'admin.resetpwd', newpwd:user.dbuser.pwd});
+				});
+			break;
+			case 'admin.resetsecpwd':
+			if (!self.dbuser.isAdmin) return self.senderr('无权限');
+			if  (pack.userid==null) return self.senderr('参数错误');
+			User.fromID(pack.userid, {secpwd:true}, function(err, user) {
+				if (err) return self.senderr(err);
+				user.dbuser.secpwd=undefined;
+				user.dbuser.pwdpro=undefined;
+				user.send({user:{hasSecpwd:false}});
+				self.send({c:'admin.resetsecpwd', r:'ok'});
+			});
+			break;
+		default:
 				var isprocessed=this.emit(pack.c, pack, this);
 				if (this.table) isprocessed=this.table.msg(pack, this) || isprocessed;
 				if (!isprocessed) this.emit('ans', pack, this);

@@ -13,9 +13,20 @@ initSrvStat(function(err, s) {
 	if (!err) srv_state=s;
 })
 
+var printf=require('printf');
+function g(str) {
+	var dot=str.indexOf('.');
+	if (dot<0) return str;
+	for (var i=str.length-1; i>=dot; i--) {
+		if (str[i]!='0') break;
+	}
+	var ret=str.substring(0, i+1);
+	if (ret[ret.length-1]=='.') ret=ret.substr(0, ret.length-1);
+	return ret;
+}
 function shortenCoinStr(n) {
-	if (n>100000000) return g(printf('%.2f', n/100000000))+'亿';
-	if (n>10000) return g(printf('%.2f', n/10000))+'万';
+	if (n>=100000000) return g(printf('%.2f', n/100000000))+'亿';
+	if (n>=10000) return g(printf('%.2f', n/10000))+'万';
 	return n;
 }
 
@@ -474,12 +485,13 @@ class Baijiale extends TableBase {
 		// send user profit
 		for (var i=0; i<user_win_list.length; i++) {
 			var obj=user_win_list[i];
-			var delta=obj.win-obj.lose;
-			if (delta>0) {
-				var d=Math.round(waterRatio*delta);
-				water+=(delta-d);
-				delta=d;
+			var delta=0;
+			if (obj.win>0) {
+				var d=Math.round(waterRatio*obj.win);
+				water+=(obj.win-d);
+				delta+=d;
 			}
+			delta-=obj.lose;
 			var orgCoins=obj.user.coins;
 			obj.user.send({c:'setprofit', p:delta});
 			modifyUserCoins(obj.user, delta);
