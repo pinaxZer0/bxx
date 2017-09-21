@@ -6,6 +6,7 @@ var args=require('yargs')
 var debugout=require('debugout')(args.debugout);
 var onlineUsers=require('./online.js'), alltables=require('./tables.js');
 var User=require('./User.js');
+var rndstring=require('randomstring').generate;
 
 function send(data) {
 	try {
@@ -22,6 +23,19 @@ function send(data) {
 	return true;
 }
 
+var crypto=require('crypto');
+function md5(str, length) {
+	var buf = new Buffer(str.length * 2 + 1);
+	var len = buf.write(str, 0);
+	str = buf.toString('binary', 0, len);
+	var md5sum = crypto.createHash('md5');
+	md5sum.update(str);
+	str = md5sum.digest('hex');
+	if (length == 16) {
+		str = str.substr(8, 16);
+	}
+	return str;
+}
 function broadcast(data, excludeUser) {
 	var all=onlineUsers.all;
 	if (typeof excludeUser=='object') {
@@ -38,10 +52,20 @@ function broadcast(data, excludeUser) {
 var default_user=User.default_user;
 
 function chkpwd(userid, pwd, cb) {
-	g_db.p.users.find({_id:userid, pwd:pwd}).toArray(function(err, r) {
+	g_db.p.users.find({_id:userid}, {pwd:true, salt:true}).toArray(function(err, r) {
 		if (err) return cb(err);
-		if (r.length==0) return cb('用户名密码不匹配，点击屏幕重试');
-		cb(null);
+		if (r.length==0) return cb('no such user');
+		if (r[0].salt) {
+			var recv=md5(''+(r[0].salt||'')+pwd);
+			if (recv==r[0].pwd) return cb(null);
+			debugout('want', r[0].pwd, 'recv', recv);
+			/*if (r.length==0) */return cb('用户名密码不匹配，点击屏幕重试');	
+		} else {
+			if (r[0].pwd==pwd) return cb(null);
+			debugout(r[0].pwd, pwd);
+			return cb('用户名密码不匹配，点击屏幕重试');
+		}
+		// cb(null);
 	});
 }
 
@@ -53,11 +77,13 @@ function afterUserInStep2(err, pack, ws, dbuser) {
 	if (dbuser) {
 		if (dbuser.block>new Date()) return ws.sendp({c:'lgerr',msg:'账号被封停', view:'login'});
 		if (!dbuser.__created) {
-			if (dbuser.pwd && dbuser.pwd!=pack.pwd) return ws.sendp({c:'lgerr', msg:'账号密码错', view:'login'});
+			// if (dbuser.pwd && md5(''+(dbuser.salt||'')+pack.pwd)!=dbuser.pwd) return ws.sendp({c:'lgerr', msg:'账号密码错', view:'login'});
+			if (dbuser.pwd && pack.pwd!=dbuser.pwd) return ws.sendp({c:'lgerr', msg:'账号密码错', view:'login'});
 			ws.sendp({user:{id:dbuser._id, showId:dbuser.showId, isAdmin:dbuser.isAdmin, bank:dbuser.bank, savedMoney:dbuser.savedMoney, hasSecpwd:(!!dbuser.secpwd), memo:dbuser.memo}});
 		}
 		else {
-			dbuser.pwd=pack.pwd;
+			var salt=dbuser.salt=rndstring(16);
+			dbuser.pwd=pack.pwd;//md5(''+salt+pack.pwd);
 			g_db.p.users.find({_id:'showId'}).limit(1).toArray(function(err, result) {
 				if (err) return;
 				if (result.length==0) dbuser.showId=10000;
@@ -138,6 +164,14 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 			debugout('recv', pack);
 			if (ws.user) return ws.user.msg(pack);
 			switch (pack.c) {
+				case 'salt':
+					db.users.find({_id:pack.id}, {_id:true, salt:true}).limit(1).toArray(function(err, r){
+						if (err) return ws.sendp({err:err});
+						debugout(r);
+						if (r.length==0) return ws.sendp({err:'no such user '+pack.id});
+						ws.sendp({c:'salt', s:r[0].salt});
+					});
+				break;
 				case 'login':
 					chkpwd(pack.id, pack.pwd, function(err) {
 						if (err) return ws.sendp({err:{message:err, view:'login'}, cancelRelogin:true});
@@ -158,7 +192,8 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 						createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
 							if (err) return ws.sendp({err:err});
 							if (!dbuser.__created) return ws.sendp({err:'用户已存在'});
-							dbuser.pwd=pack.pwd;
+							var salt=dbuser.salt=rndstring(16);
+							dbuser.pwd=md5(''+salt+pack.pwd);
 							ws.user=new User(ws, dbuser);
 							dbuser.nickname=pack.nickname||pack.id;
 							pack.face && (dbuser.face=pack.face);

@@ -1,6 +1,16 @@
 webpackJsonp([3],{
 
-/***/ 55:
+/***/ 85:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var t = __webpack_require__(86);
+	module.exports = t;
+
+/***/ },
+
+/***/ 86:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -157,6 +167,23 @@ webpackJsonp([3],{
 					TDGA.onEvent(name, (typeof data === "undefined" ? "undefined" : _typeof(data)) == 'object' ? data : { data: data });
 				});
 			}
+		}, {
+			key: "changeToVirtualCurrency",
+			value: function changeToVirtualCurrency() {}
+			/**
+	   * 消耗虚拟币，如果有3个参数，那么是消耗n*price的币，
+	   * @param {string} name 
+	   * @param {number} n 
+	   * @param {number|null} price 
+	   */
+
+		}, {
+			key: "consume",
+			value: function consume(name, n, price) {
+				this._delay(function () {
+					TDGA.onItemPurchase(name);
+				});
+			}
 		}]);
 
 		return Stat;
@@ -169,12 +196,12 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 59:
+/***/ 90:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var tongji = window.tongji = __webpack_require__(55);
+	var tongji = window.tongji = __webpack_require__(85);
 	function _noop() {}
 	function toRuleString(rule) {
 		var str = '';
@@ -364,7 +391,7 @@ webpackJsonp([3],{
 	}
 	accWechatIntf('weixin/sign', {}, function (err, conf) {
 		if (err) return console.log(err);
-		var WechatJSSDK = __webpack_require__(60);
+		var WechatJSSDK = __webpack_require__(91);
 		conf.jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage', 'startRecord', 'stopRecord', 'onVoiceRecordEnd', 'playVoice', 'pauseVoice', 'stopVoice', 'onVoicePlayEnd', 'uploadVoice', 'downloadVoice'];
 		conf.success = function () {
 			window.wxInit && window.wxInit();
@@ -406,7 +433,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 60:
+/***/ 91:
 /***/ function(module, exports) {
 
 	/*!

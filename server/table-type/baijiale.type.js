@@ -39,6 +39,8 @@ const GAME_STATUS={
 const playerMaxDeal=50000000;
 const enrollBaseCoins=2000000;
 const playerBankerSetLimits=12;
+const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
+const waterRatio=0.99;
 
 var tips=[
 	'开牌出和时，庄，闲的下注将原分返还',
@@ -229,16 +231,16 @@ class Baijiale extends TableBase {
 			this.gamedata.opt.minZhu=100;
 			this.gamedata.opt.maxZhu=200000;
 			this.gamedata.opt.minDui=100;
-			this.gamedata.opt.maxDui=20000;
-			this.gamedata.opt.maxHe=25000;
+			this.gamedata.opt.maxDui=Math.floor(this.gamedata.opt.maxZhu/factor.xianDui/100)*100;
+			this.gamedata.opt.maxHe=Math.floor(this.gamedata.opt.maxZhu/factor.he/100)*100;
 		} else {
 			var u=pb;
-			var reasonableZhu=Math.floor(u.coins/1000000)*1000000;
+			var reasonableZhu=u.coins;//Math.floor(u.coins/1000000)*1000000;
 			this.gamedata.opt.minZhu=100;
 			this.gamedata.opt.maxZhu=reasonableZhu;
 			this.gamedata.opt.minDui=100;
-			this.gamedata.opt.maxDui=Math.floor(u.coins/33/10000)*10000;// u.c*1/3/11
-			this.gamedata.opt.maxHe=Math.floor(this.gamedata.opt.maxDui*19/15/10000)*10000;  // u.c/8
+			this.gamedata.opt.maxDui=Math.floor(this.gamedata.opt.maxZhu/factor.xianDui/100)*100;// u.c*1/3/11
+			this.gamedata.opt.maxHe=Math.floor(reasonableZhu/factor.he/100)*100; //Math.floor(this.gamedata.opt.maxDui*19/15/10000)*10000;  // u.c/8
 		}
 		cb();
 	}
@@ -270,6 +272,14 @@ class Baijiale extends TableBase {
 		this.gamedata.status=GAME_STATUS.KAIJU;
 		gd.deal={};
 		var total={xian:0, xianDui:0, zhuang:0, zhuangDui:0, he:0};
+		function leftXiazhu(pack) {
+			pack.xian=pack.xian||0;
+			pack.zhuang=pack.zhuang||0;
+			pack.he=pack.he||0;
+			pack.xianDui=pack.xianDui||0;
+			pack.zhuangDui=pack.zhuangDui||0;
+			return (gd.opt.maxZhu-(Math.abs((total.xian+pack.xian)*factor.xian-(total.zhuang+pack.zhuang)*factor.zhuang)+(total.xianDui+pack.xianDui)*factor.xianDui+(total.zhuangDui+pack.zhuangDui)*factor.zhuangDui));
+		}
 		function handleXiazhu(pack, user) {
 			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
@@ -285,11 +295,12 @@ class Baijiale extends TableBase {
 			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 			user.lockedCoins=total_deal;
 
-			debugout(pack, total);
+			var left=leftXiazhu(pack);
+			debugout(pack, total, left);
 			if (pack.xian) {
 				if (pack.xian<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
-				if (pack.xian>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
-				if ((total.xian+pack.xian)>(total.zhuang+gd.opt.maxZhu/3)) return user.send({err:'不能继续压闲'});
+				if (left<0) return user.send({err:'不能继续压闲'});
+				// if ((total.xian+pack.xian)>(total.zhuang+gd.opt.maxZhu/3)) return user.send({err:'不能继续压闲'});
 				if (pack.xian>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲区下注了'+shortenCoinStr(pack.xian)});
 				deal.xian+=pack.xian;
 				total.xian+=pack.xian;
@@ -297,8 +308,8 @@ class Baijiale extends TableBase {
 			}
 			if (pack.zhuang) {
 				if (pack.zhuang<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
-				if (pack.zhuang>gd.opt.maxZhu) return user.send({err:'最多下注'+gd.opt.maxZhu});
-				if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
+				if (left<0) return user.send({err:'不能继续压庄'});
+				// if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
 				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
 				deal.zhuang+=pack.zhuang;
 				total.zhuang+=pack.zhuang;
@@ -314,7 +325,8 @@ class Baijiale extends TableBase {
 			}
 			if (pack.xianDui) {
 				if (pack.xianDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
-				if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
+				// if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
+				if (left<0) return user.send({err:'不能继续压闲对'});
 				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
 				deal.xianDui+=pack.xianDui;
 				total.xianDui+=pack.xianDui;
@@ -322,7 +334,8 @@ class Baijiale extends TableBase {
 			}
 			if (pack.zhuangDui) {
 				if (pack.zhuangDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
-				if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
+				// if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
+				if (left<0) return user.send({err:'不能继续压庄对'});
 				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
 				deal.zhuangDui+=pack.zhuangDui;
 				total.zhuangDui+=pack.zhuangDui;
@@ -374,8 +387,6 @@ class Baijiale extends TableBase {
 	jiesuan(cb) {
 		debugout(this.roomid, 'jiesuan');
 		this.gamedata.status=GAME_STATUS.JIESUAN;
-		const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
-		const waterRatio=0.99;
 		var self=this, gd=this.gamedata;
 		var r=gd.his[gd.his.length-1];
 		var winArr=[], loseArr, tieArr=[];

@@ -1,6 +1,6 @@
 webpackJsonp([6],{
 
-/***/ 156:
+/***/ 157:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10,15 +10,15 @@ webpackJsonp([6],{
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var async = __webpack_require__(18),
-	    me = __webpack_require__(51),
+	    me = __webpack_require__(81),
 	    printf = __webpack_require__(23),
 	    etc = __webpack_require__(22),
 	    fstr = etc.fstr,
 	    fstr2num = etc.fstr2num,
 	    EventEmitter = __webpack_require__(28),
 	    clone = __webpack_require__(10);
-	var wins = __webpack_require__(61);
-	var ROAD = __webpack_require__(157),
+	var wins = __webpack_require__(92);
+	var ROAD = __webpack_require__(158),
 	    BeadPlate = ROAD.BeadPlate,
 	    BigRoad = ROAD.BigRoad,
 	    BigEye = ROAD.BigEye;
@@ -106,7 +106,7 @@ webpackJsonp([6],{
 				if (typeof opt === 'function') {
 					cb = opt;opt = {};
 				}
-				Laya.loader.load([{ url: __webpack_require__(117), type: Loader.IMAGE }, { url: __webpack_require__(118), type: Loader.IMAGE }, { url: __webpack_require__(120), type: Loader.BUFFER }], Handler.create(null, function () {
+				Laya.loader.load([{ url: __webpack_require__(148), type: Loader.IMAGE }, { url: __webpack_require__(149), type: Loader.IMAGE }, { url: __webpack_require__(151), type: Loader.BUFFER }], Handler.create(null, function () {
 					if (!!window.magiclink) {
 						magiclink.reg(function (room) {
 							console.log('magiclink ret', room);
@@ -271,7 +271,7 @@ webpackJsonp([6],{
 
 /***/ },
 
-/***/ 157:
+/***/ 158:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -282,7 +282,7 @@ webpackJsonp([6],{
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var _ = __webpack_require__(62);
+	var _ = __webpack_require__(93);
 
 	var BeadPlate = function () {
 		/**

@@ -1,6 +1,16 @@
 webpackJsonp([2],{
 
-/***/ 55:
+/***/ 85:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var t = __webpack_require__(86);
+	module.exports = t;
+
+/***/ },
+
+/***/ 86:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -157,6 +167,23 @@ webpackJsonp([2],{
 					TDGA.onEvent(name, (typeof data === "undefined" ? "undefined" : _typeof(data)) == 'object' ? data : { data: data });
 				});
 			}
+		}, {
+			key: "changeToVirtualCurrency",
+			value: function changeToVirtualCurrency() {}
+			/**
+	   * 消耗虚拟币，如果有3个参数，那么是消耗n*price的币，
+	   * @param {string} name 
+	   * @param {number} n 
+	   * @param {number|null} price 
+	   */
+
+		}, {
+			key: "consume",
+			value: function consume(name, n, price) {
+				this._delay(function () {
+					TDGA.onItemPurchase(name);
+				});
+			}
 		}]);
 
 		return Stat;
@@ -169,12 +196,12 @@ webpackJsonp([2],{
 
 /***/ },
 
-/***/ 57:
+/***/ 88:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var tongji = window.tongji = __webpack_require__(55);
+	var tongji = window.tongji = __webpack_require__(85);
 
 	function _noop() {}
 

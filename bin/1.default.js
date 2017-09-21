@@ -1,11 +1,11 @@
 webpackJsonp([1],{
 
-/***/ 54:
+/***/ 84:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var tongji = window.tongji = __webpack_require__(55);
+	var tongji = window.tongji = __webpack_require__(85);
 
 	function _noop() {}
 	// function getAjax(url, data, callback) {
@@ -32,7 +32,7 @@ webpackJsonp([1],{
 	window.pay = function (orderid, money, desc, cb) {
 		!cb && (cb = _noop);
 		if (tipon) {
-			tongji.beginCharge(orderid, money, desc, '测试通道');
+			tongji.beginCharge(orderid, money, Math.floor(money / 3), desc, '测试通道');
 			return getAjax('pf/default/pay', { orderid: orderid, money: money }, function (err, r) {
 				if (err) return tipon(err.responseText).popup(cb);
 				tipon('测试版，直接完成充值').popup(cb);
@@ -50,7 +50,17 @@ webpackJsonp([1],{
 
 /***/ },
 
-/***/ 55:
+/***/ 85:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var t = __webpack_require__(86);
+	module.exports = t;
+
+/***/ },
+
+/***/ 86:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -205,6 +215,23 @@ webpackJsonp([1],{
 			value: function event(name, data) {
 				this._delay(function () {
 					TDGA.onEvent(name, (typeof data === "undefined" ? "undefined" : _typeof(data)) == 'object' ? data : { data: data });
+				});
+			}
+		}, {
+			key: "changeToVirtualCurrency",
+			value: function changeToVirtualCurrency() {}
+			/**
+	   * 消耗虚拟币，如果有3个参数，那么是消耗n*price的币，
+	   * @param {string} name 
+	   * @param {number} n 
+	   * @param {number|null} price 
+	   */
+
+		}, {
+			key: "consume",
+			value: function consume(name, n, price) {
+				this._delay(function () {
+					TDGA.onItemPurchase(name);
 				});
 			}
 		}]);
