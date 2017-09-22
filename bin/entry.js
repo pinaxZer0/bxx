@@ -73,7 +73,7 @@
 /******/ 			script.charset = 'utf-8';
 /******/ 			script.async = true;
 
-/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"e5ba6a5b24a8e7fd90f9","2":"963ee0488fdeef6ae3dc","3":"9c42f6e7c316ee6abe77","4":"8ebb66980dd1f565f1b9","5":"03bdb0b582e9cf8514f3","6":"bf07d3d9d69a79ddceae","7":"8e50a2c4549a34f60611"}[chunkId] + "";
+/******/ 			script.src = __webpack_require__.p + "" + chunkId + "." + ({"1":"default","2":"inapp","3":"wechat"}[chunkId]||chunkId) + ".js?" + {"1":"4bf359d4e3b71c224eb9","2":"1c1464a0bbc98aba9293","3":"aa36ebf0d836ab78b5ef","4":"8ebb66980dd1f565f1b9","5":"82bdc69daa86418baf07","6":"bf07d3d9d69a79ddceae","7":"234379c1be0b960a94c8"}[chunkId] + "";
 /******/ 			head.appendChild(script);
 /******/ 		}
 /******/ 	};
@@ -11092,9 +11092,9 @@
 	try {
 		stored = JSON.parse(localStorage.getItem('id'));
 	} catch (e) {
-		stored = null;
+		stored = null;localStorage.setItem('id', '');
 	};
-	if (stored == null) stored = { rememberPwd: true };
+	if (stored == null) stored = { rememberPwd: true, rememberMe: true };
 	if (stored.rememberPwd == null) stored.rememberPwd = true;
 	/**
 	 * save login data to localstorage if id means new user

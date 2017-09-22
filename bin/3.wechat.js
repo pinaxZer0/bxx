@@ -167,9 +167,25 @@ webpackJsonp([3],{
 					TDGA.onEvent(name, (typeof data === "undefined" ? "undefined" : _typeof(data)) == 'object' ? data : { data: data });
 				});
 			}
+			/**
+	   * 
+	   * @param {number} n , 换多少币
+	   * @param {number} m ，上级币的数量
+	   * @param {string|null} n_name, 本级货币名称，默认金币
+	   * @param {string|null} m_name, 上级货币名称，默认钻石
+	   */
+
 		}, {
 			key: "changeToVirtualCurrency",
-			value: function changeToVirtualCurrency() {}
+			value: function changeToVirtualCurrency(n, m, n_name, m_name) {
+				n_name = n_name || '金币';m_name = m_name || '钻石';
+				this._delay(function () {
+					var detail = {};
+					detail[n_name] = n;
+					detail[m_name] = m;
+					TDGA.onEvent('buyCoin', detail);
+				});
+			}
 			/**
 	   * 消耗虚拟币，如果有3个参数，那么是消耗n*price的币，
 	   * @param {string} name 
@@ -181,7 +197,7 @@ webpackJsonp([3],{
 			key: "consume",
 			value: function consume(name, n, price) {
 				this._delay(function () {
-					TDGA.onItemPurchase(name);
+					TDGA.onItemPurchase(name, n, price);
 				});
 			}
 		}]);

@@ -595,6 +595,7 @@ webpackJsonp([7],Array(158).concat([
 					pb = pb.user;
 					if (pb.id == me.id) self._view.getChild('n294').enabled = true;
 					self._view.getController('zhuang').selectedIndex = pb.id == me.id ? 1 : 0;
+					self._view.getChild('n305').visible = pb.id == me.id;
 					self._view.getChild('n258').text = pb.nickname || pb.id;
 					self._view.getChild('n66').text = fstr(pb.coins);
 					self._view.getChild('n263').text = shortenCoinStr(pb.profit || 0);
@@ -606,6 +607,7 @@ webpackJsonp([7],Array(158).concat([
 					self._view.getChild('n66').text = '';
 					self._view.getChild('n263').text = '';
 					self._view.getChild('n264').text = '';
+					self._view.getChild('n305').visible = false;
 				}
 			}).on('enrollchgd', function () {
 				self._view.getChild('guashuailist').numItems = gd.enroll ? gd.enroll.length : 0;
@@ -1348,6 +1350,8 @@ webpackJsonp([7],Array(158).concat([
 				this._view.getChild('n296').selected = sbc;
 
 				this.delayUpdateUserIDs();
+
+				this._view.getChild('n305').visible = false; //默认不要显示逃庄，直到自己上庄
 			}
 		}, {
 			key: 'deactive',
@@ -1501,6 +1505,11 @@ webpackJsonp([7],Array(158).concat([
 					_view.getChild('n296').onClick(null, function () {
 						room.showBigCoin = _view.getChild('n296').selected;
 						localStorage.setItem('showBigCoin', room.showBigCoin ? 'true' : 'false');
+					});
+
+					// runaway
+					_view.getChild('n305').onClick(null, function () {
+						_socket.sendp({ c: 'table.runaway' });
 					});
 					room.afterCreateView();
 					cb(null, room);

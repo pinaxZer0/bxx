@@ -195,13 +195,11 @@ class Baijiale extends TableBase {
 			this.playerBankerWantQuit=null;
 		}
 		var limitSets=playerBankerSetLimits;
-		if (this.gamedata.enroll.length==0) {
-			limitSets=14;
-		}
+
 		var playerBanker=this.gamedata.playerBanker;
 		if (playerBanker) {
 			playerBanker.bankerSets++;
-			if (playerBanker.coins>=enrollBaseCoins && playerBanker.bankerSets<=limitSets) {
+			if (playerBanker.coins>=enrollBaseCoins && (playerBanker.bankerSets<=limitSets||this.gamedata.enroll.length==0)) {
 				return cb();
 			}
 		}
@@ -229,7 +227,7 @@ class Baijiale extends TableBase {
 		var pb=this.gamedata.playerBanker;
 		if (!pb) {
 			this.gamedata.opt.minZhu=100;
-			this.gamedata.opt.maxZhu=200000;
+			this.gamedata.opt.maxZhu=5000000;
 			this.gamedata.opt.minDui=100;
 			this.gamedata.opt.maxDui=Math.floor(this.gamedata.opt.maxZhu/factor.xianDui/100)*100;
 			this.gamedata.opt.maxHe=Math.floor(this.gamedata.opt.maxZhu/factor.he/100)*100;
@@ -291,7 +289,7 @@ class Baijiale extends TableBase {
 			var userTotal=deal.xian+deal.zhuang+deal.xianDui+deal.zhuangDui+deal.he;
 			var curDeal=(pack.xian||0)+(pack.zhuang||0)+(pack.xianDui||0)+(pack.zhuangDui||0)+(pack.he||0);
 			var total_deal=curDeal+userTotal;
-			if (total_deal>=playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
+			if (total_deal>playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
 			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
 			user.lockedCoins=total_deal;
 
@@ -362,20 +360,34 @@ class Baijiale extends TableBase {
 			if (!deal) return;
 			deal.sealed=true;
 		}
+		function handleRunaway(pack, user) {
+			if (user!=gd.playerBanker) return;
+			self.broadcast({err:'庄家逃跑，立刻结算'});
+			self.playerBankerWantQuit=user.id;
+			_end();
+		}
+		var endCalled=false;
+		function _end() {
+			if (endCalled) return;
+			endCalled=true;
+			clearInterval(timer);
+			self.msgDispatcher.removeListener('table.xiazhu',handleXiazhu)
+			.removeListener('table.cancelXiazhu',handleCancelXiazhu)
+			.removeListener('table.confirmXiazhu',handleConfirmXiazhu)
+			.removeListener('table.runaway',handleRunaway);
+			callback();
+		}
 		gd.countdown=24;
-		var timer=setInterval(function() {
+		var timer=setInterval(function () {
 			gd.countdown--;
 			if (gd.countdown==-1) {
-				clearInterval(timer);
-				self.msgDispatcher.removeListener('table.xiazhu',handleXiazhu)
-				.removeListener('table.cancelXiazhu',handleCancelXiazhu)
-				.removeListener('table.confirmXiazhu',handleConfirmXiazhu);
-				callback();
+				_end();
 			}
 		}, 1000);
 		this.msgDispatcher.on('table.xiazhu', handleXiazhu)
 		.on('table.cancelXiazhu', handleCancelXiazhu)
 		.on('table.confirmXiazhu', handleConfirmXiazhu)
+		.on('table.runaway', handleRunaway)
 	}
 	fapai(cb) {
 		this.gamedata.status=GAME_STATUS.FAPAI;
@@ -568,7 +580,7 @@ class Baijiale extends TableBase {
 			});
 			if (pack.in) {
 				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) return comesfrom.senderr('正在做帅');
-				if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
+				// if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
 				if (idx>=0) return comesfrom.senderr('已经在排队了');
 				if (comesfrom.coins<enrollBaseCoins) return comesfrom.senderr('金豆不足200万，不能做帅');
 				this.gamedata.enroll.push(comesfrom);

@@ -720,6 +720,7 @@ class User extends EventEmitter {
 				if (pack.coins<=0) return self.senderr('金豆数量不对');
 				if (pack.coins>this.savedMoney) return this.senderr('没有足够的金豆');
 				if (pack.target==this.showId) return this.senderr('不能转给自己');
+				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能转账');
 				User.fromShowID(pack.target, function(err, usr) {
 					if (err) return self.senderr(err);
 					g_db.p.translog.insert({_t:new Date(), act:'转账:'+usr.nickname+'('+usr.showId+')', coins:-pack.coins, id:self.id});
