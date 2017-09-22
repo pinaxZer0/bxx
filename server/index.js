@@ -55,16 +55,16 @@ function chkpwd(userid, pwd, cb) {
 	g_db.p.users.find({_id:userid}, {pwd:true, salt:true}).toArray(function(err, r) {
 		if (err) return cb(err);
 		if (r.length==0) return cb('no such user');
-		if (r[0].salt) {
-			var recv=md5(''+(r[0].salt||'')+pwd);
-			if (recv==r[0].pwd) return cb(null);
-			debugout('want', r[0].pwd, 'recv', recv);
-			/*if (r.length==0) */return cb('用户名密码不匹配，点击屏幕重试');	
-		} else {
+		// if (r[0].salt) {
+		// 	var recv=md5(''+(r[0].salt||'')+pwd);
+		// 	if (recv==r[0].pwd) return cb(null);
+		// 	debugout('want', r[0].pwd, 'recv', recv);
+		// 	/*if (r.length==0) */return cb('用户名密码不匹配，点击屏幕重试');	
+		// } else {
 			if (r[0].pwd==pwd) return cb(null);
 			debugout(r[0].pwd, pwd);
 			return cb('用户名密码不匹配，点击屏幕重试');
-		}
+		// }
 		// cb(null);
 	});
 }
