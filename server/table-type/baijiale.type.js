@@ -90,6 +90,7 @@ class Baijiale extends TableBase {
 	}
 	leave(user) {
 		// this.broadcast({c:'table.userout', id:user.id});
+		// if (this.gamedata.playerBanker==user) this.playerBankerWantQuit=user.id;
 		this.msgDispatcher.emit('userleave', user);
 		this.quit(user);
 	}
@@ -124,18 +125,22 @@ class Baijiale extends TableBase {
 			if (!obj.seats) obj.seats={};
 			for (var i in obj.deal) {
 				// var u=this.scene.seats[i].user;
-				obj.seats[i]={};
+				// obj.seats[i]={};
 				delete obj.deal[i].user;
 			}
 		}
 		if (obj.seats) {
 			for (var i in obj.seats) {
 				var seat =this.scene.seats[i];
-				if (!seat) continue;
+				if (!seat) {
+					obj.seats[i]=undefined;
+					continue;
+				}
 				var u=seat.user;
 				if (u) {
+					obj.seats[i]=obj.seats[i]||{};
 					obj.seats[i].user={id:u.id, nickname:u.nickname, face:u.dbuser.face, coins:u.coins, level:u.level, offline:seat.offline, showId:u.showId, profit:u.profit, bankerSets:u.bankerSets, setprofit:u.setprofit, memo:u.memo, total_set:u.dbuser.total_set};
-				}
+				} 
 			}
 		}
 		if (obj.playerBanker) {
@@ -190,7 +195,8 @@ class Baijiale extends TableBase {
 		});
 	}
 	chooseBanker(cb) {
-		if (this.playerBankerWantQuit) {
+		// 庄要求下庄或者庄已经不在线了
+		if (this.playerBankerWantQuit || (this.gamedata.playerBanker && this.gamedata.seats[this.gamedata.playerBanker.id]==null)) {
 			this.gamedata.playerBanker=null;
 			this.playerBankerWantQuit=null;
 		}
@@ -227,7 +233,7 @@ class Baijiale extends TableBase {
 		var pb=this.gamedata.playerBanker;
 		if (!pb) {
 			this.gamedata.opt.minZhu=100;
-			this.gamedata.opt.maxZhu=5000000;
+			this.gamedata.opt.maxZhu=200000;
 			this.gamedata.opt.minDui=100;
 			this.gamedata.opt.maxDui=Math.floor(this.gamedata.opt.maxZhu/factor.xianDui/100)*100;
 			this.gamedata.opt.maxHe=Math.floor(this.gamedata.opt.maxZhu/factor.he/100)*100;
@@ -350,7 +356,7 @@ class Baijiale extends TableBase {
 			total.he-=deal.he;
 			total.xian-=deal.xian;
 			total.zhuang-=deal.zhuang;
-			var reback=(deal.xian||0)+(deal.xianDui||0)+(deal.zhuangDui||0)+(deal.he||0)+(deal.zhuang||0);
+			// var reback=(deal.xian||0)+(deal.xianDui||0)+(deal.zhuangDui||0)+(deal.he||0)+(deal.zhuang||0);
 			// deal.user.coins+=reback;
 			deal.xian=deal.xianDui=deal.zhuangDui=deal.he=deal.zhuang=0;
 		}
@@ -536,7 +542,8 @@ class Baijiale extends TableBase {
 				}
 				var o=self.mk_transfer_gamedata(updObj, i);
 				o.seq=1;
-				seat.user.send(o);
+				o.jiesuan=true;
+				// seat.user.send(o);
 			}
 		}	
 		(function(next) {
