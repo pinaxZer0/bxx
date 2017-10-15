@@ -413,6 +413,7 @@ getDB(function (err, db, easym) {
 
 	// 购买支持
 	app.all('/createOrder', httpf({ userid: 'string', packid: 'string', callback: true }, function (userid, packid, callback) {
+		if (packid=='apple.appstore') return callback(null, {orderid:this.req.param('productId')});
 		if (packid=='userdefine') {
 			var rmb=Number(this.req.param('rmb'));
 			if (!rmb) return callback('rmb must spec');

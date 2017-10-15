@@ -297,7 +297,6 @@ class Baijiale extends TableBase {
 			var total_deal=curDeal+userTotal;
 			if (total_deal>playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
 			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
-			user.lockedCoins=total_deal;
 
 			var left=leftXiazhu(pack);
 			debugout(pack, total, left);
@@ -344,7 +343,8 @@ class Baijiale extends TableBase {
 				deal.zhuangDui+=pack.zhuangDui;
 				total.zhuangDui+=pack.zhuangDui;
 				// user.coins-=pack.zhuangDui;
-			}			
+			}
+			user.lockedCoins=total_deal;
 		}
 		function handleCancelXiazhu(pack, user) {
 			if (user==gd.playerBanker) return;

@@ -37,6 +37,7 @@
     "mkdirp": "^0.5.1",
     "mongodb": "",
     "mysql": "^2.13.0",
+    "node-apple-receipt-verify": "git+https://github.com/ladeiko/node-apple-receipt-verify.git",
     "once": "^1.4.0",
     "printf": "^0.2.5",
     "random-points-on-polygon": "0.0.4",
