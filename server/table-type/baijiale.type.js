@@ -111,6 +111,8 @@ class Baijiale extends TableBase {
 		this.broadcast({c:'table.userin', id:user.id, nickname:user.nickname, level:user.level, face:user.dbuser.face, seat:seat});
 		user.offline=false;
 		this.msgDispatcher.emit('userin', user);
+
+		if (user.savedMoney>0 && !user.dbuser.secpwd) user.send({c:'table.chat', nickname:'消息', str:'您的保险柜有入账，请设置保险柜密码领取'});
 	}
 	mk_transfer_gamedata(obj, idx) {
 		// 简化user对象，只传输id nickname face level score

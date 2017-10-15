@@ -727,6 +727,7 @@ class User extends EventEmitter {
 					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+usr.showId+')', coins:pack.coins, id:usr.id});
 					self.savedMoney-=pack.coins;
 					usr.savedMoney+=pack.coins;
+					usr.send({c:'table.chat', nickname:'消息',str:'您的保险箱有一笔入账，请查收'});
 				});
 			break;
 			case 'user.setnickname':
