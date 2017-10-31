@@ -164,6 +164,7 @@ class Baijiale extends TableBase {
 		this.gamedata.setnum=0;
 		this.gamedata.his=[];
 		this.q.push(this.qiepai.bind(this));
+		this.broadcast({c:'table.cardcomplete', seq:1});
 		this.newround();
 	}
 	newround() {
