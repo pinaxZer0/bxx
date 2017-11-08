@@ -192,16 +192,17 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 						createDbJson(db, {col:db.users, key:pack.id, alwayscreate:true, default:default_user}, function(err, dbuser) {
 							if (err) return ws.sendp({err:err});
 							if (!dbuser.__created) return ws.sendp({err:{message:'用户已存在', view:'login'}});
-							var salt=dbuser.salt=rndstring(16);
-							dbuser.pwd=md5(''+salt+pack.pwd);
-							ws.user=new User(ws, dbuser);
-							dbuser.nickname=pack.nickname||pack.id;
-							pack.face && (dbuser.face=pack.face);
-							ws.sendp({c:'showview', v:'hall', user:dbuser, seq:1});
-							onlineUsers.add(ws.user);
-							//ws.sendp({user:{id:ws.user.id, nickname:ws.user.nickname, exp:ws.user.exp, }})
-							if (pack.room) ws.user.join(pack.room);
-							broadcast({c:'userin', userid:pack.id, nick:ws.user.nickname}, ws.user);
+							afterUserIn(err, pack, ws, dbuser);
+							// var salt=dbuser.salt=rndstring(16);
+							// dbuser.pwd=md5(''+salt+pack.pwd);
+							// ws.user=new User(ws, dbuser);
+							// dbuser.nickname=pack.nickname||pack.id;
+							// pack.face && (dbuser.face=pack.face);
+							// ws.sendp({c:'showview', v:'hall', user:dbuser, seq:1});
+							// onlineUsers.add(ws.user);
+							// //ws.sendp({user:{id:ws.user.id, nickname:ws.user.nickname, exp:ws.user.exp, }})
+							// if (pack.room) ws.user.join(pack.room);
+							// broadcast({c:'userin', userid:pack.id, nick:ws.user.nickname}, ws.user);
 						});
 					});
 				break;
