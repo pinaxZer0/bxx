@@ -43,6 +43,9 @@
 			} else if (window.StatusBar) {
 				StatusBar.hide();
 			}
+			if (window.device.platform === 'iOS') {
+				cordova.plugins.iosrtc && cordova.plugins.iosrtc.registerGlobals();
+			}
 			loadScript('./entry.js');
 		}
 		document.addEventListener('deviceready', onDeviceReady, false);	

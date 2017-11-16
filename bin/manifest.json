@@ -1,8 +1,8 @@
 {
   "6.6.js?edfae2ce1dd2c21931c2": "6.6.js?edfae2ce1dd2c21931c2",
-  "7.7.js?40d7f285239cf5873c5b": "7.7.js?40d7f285239cf5873c5b",
-  "8.8.js?45d660b3232ca2d3334c": "8.8.js?45d660b3232ca2d3334c",
-  "9.9.js?dcd3851e8632eeb6b5e2": "9.9.js?dcd3851e8632eeb6b5e2",
+  "7.7.js?86e1bead5134d5c14549": "7.7.js?86e1bead5134d5c14549",
+  "8.8.js?6466788cc49e1f11035f": "8.8.js?6466788cc49e1f11035f",
+  "9.9.js?8fea9f7568e9c764a903": "9.9.js?8fea9f7568e9c764a903",
   "android.js": "1.android.js?d34b020c350dbe5e1f38",
   "baijiale.fui": "baijiale.fui?452df7ffe948391d7ebc9c1995d33e8c",
   "baijiale@atlas0.png": "baijiale@atlas0.png?6d49a5b561b5f5d9fd3d01f19ab36a4b",
@@ -39,10 +39,10 @@
   "company.jpg": "company.jpg?dc7343d4519459a6151e805f84d6471f",
   "deal.mp3": "deal.mp3?0e98b6ad29bce0d9db74758644240512",
   "default.js": "2.default.js?5a3d710105992f2c8dcf",
-  "entry.js": "entry.js?af5e87ee8c4b5000132c",
-  "inapp.js": "3.inapp.js?58547267d513401e9ef9",
+  "entry.js": "entry.js?fd0d5f65421b5e84f9e2",
+  "inapp.js": "3.inapp.js?7264f7d636a4ca7821e5",
   "ingameBGMMono.mp3": "ingameBGMMono.mp3?e2f1dae4237ad6d5be9aacbcd2975699",
-  "ios.js": "4.ios.js?a9a2a4f8993117c2b514",
+  "ios.js": "4.ios.js?5941917ad7c71b185a00",
   "loader.js": "loader.js?5bb5e4fa04feb6ed9e7e",
   "menuBGMMono.mp3": "menuBGMMono.mp3?ee336442b6972f6d6d9b7f224bcc2e20",
   "play0.mp3": "play0.mp3?d332e9c6f843daf1fddd8cbc8a224151",
@@ -60,8 +60,5 @@
   "playwin.mp3": "playwin.mp3?4854851a8b397ba9b21d87ef54e83394",
   "pleasebet.mp3": "pleasebet.mp3?414cc71ec543e8921a3bcc630db8b3b4",
   "tie.mp3": "tie.mp3?498dc41dcd1847af774710878480c743",
-  "wechat.js": "5.wechat.js?a835e0ae926824dc4eb6",
-  "7.7.js?7b73168c09079b0ea0fe": "7.7.js?7b73168c09079b0ea0fe",
-  "9.9.js?875e4d5ad83523d8a66a": "9.9.js?875e4d5ad83523d8a66a",
-  "9.9.js?da343226bf5fa3d06397": "9.9.js?da343226bf5fa3d06397"
+  "wechat.js": "5.wechat.js?a835e0ae926824dc4eb6"
 }
