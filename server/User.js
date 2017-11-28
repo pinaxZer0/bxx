@@ -781,13 +781,13 @@ class User extends EventEmitter {
 				this.dbuser.pwd=pack.pwd;
 			break;
 			case 'userInfo':
-				if (pack.id) return User.fromShowID(pack.id, {nickname:true, face:true, coins:true, showId:true, block:true, nochat:true}, function(err, user) {
+				if (pack.id) return User.fromShowID(pack.id, {nickname:true, face:true, coins:true, savedMoney:true, showId:true, block:true, nochat:true}, function(err, user) {
 					if (err) return self.senderr(err);
-					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
+					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, savedMoney:user.savedMoney, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
 				});
-				if (pack.nickname) return User.fromNickname(pack.nickname, {nickname:true, face:true, coins:true, showId:true, block:true, nochat:true}, function(err, user) {
+				if (pack.nickname) return User.fromNickname(pack.nickname, {nickname:true, face:true, coins:true, savedMoney:true, showId:true, block:true, nochat:true}, function(err, user) {
 					if (err) return self.senderr(err);
-					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
+					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, savedMoney:user.savedMoney, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
 				});
 				self.senderr('必须指定id或者nickname');
 			break;
@@ -817,6 +817,29 @@ class User extends EventEmitter {
 					});
 				});
 			break;
+			case 'admin.addsaved':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				pack.coins=Number(pack.coins);
+				if (pack.userid==null || !pack.coins || isNaN(pack.coins)) return self.senderr('参数错误');
+				User.fromID(pack.userid, {savedMoney:true}, function(err, user) {
+					if (err) return self.senderr(err);
+					getDB(function(err, db, easym) {
+						if (err) return self.senderr(err);
+						if (user.savedMoney<0) return self.senderr('用户保险柜异常，请联系技术');
+						if (pack.coins<0) {
+							if (!user.savedMoney) return self.senderr('保险柜里没钱');
+							if (user.savedMoney+pack.coins<0) {
+								user.savedMoney=0;
+								pack.coins=-user.savedMoney;
+							}else user.savedMoney+=pack.coins;
+						} 
+						else user.savedMoney+=pack.coins;
+						db.adminlog.insert({time:new Date(), target:user.id, targetName:user.nickname, coins:pack.coins, operatorName:self.nickname, operator:self.id, type:'保险柜'});
+						db.translog.insert({_t:new Date(), id:user.id, act:pack.coins>=0?'转入保险柜:活动赠送':'处罚:扣除保险柜',coins:pack.coins});
+						self.send({c:'admin.addsaved', newcoin:user.savedMoney});
+					});
+				});
+			break;			
 			case 'admin.block':
 				if (!self.dbuser.isAdmin) return self.senderr('无权限');
 				if (pack.userid==null || pack.t==null || isNaN(Number(pack.t))) return self.senderr('参数错误');
