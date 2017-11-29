@@ -870,7 +870,8 @@ class User extends EventEmitter {
 					if (err) return self.senderr(err);
 					db.adminlog.find({time:{$gt:start, $lte:end}}).toArray(function(err, r) {
 						if (err) return self.senderr(err);
-						self.send({c:'admin.addCoinsLog', logs:r});
+						self.storedAdminCoinsLogs={token:randstring(), start:start, end:end};
+						self.send({c:'admin.addCoinsLog', logs:r, token:self.storedAdminCoinsLogs.token});
 					});
 				});
 			break;

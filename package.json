@@ -51,6 +51,7 @@
     "wechat-oauth": "^1.1.1",
     "wechat-pay": "^0.2.4",
     "ws": "^1.1.1",
+    "xlsx": "^0.11.10",
     "yargs": "^6.3.0"
   },
   "devDependencies": {

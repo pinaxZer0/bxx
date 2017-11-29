@@ -5,6 +5,18 @@ var qs=require('querystring').stringify, url=require('url');
 var httpf=require('httpf');
 var getDB=require('../db.js'), ObjectID = require('mongodb').ObjectID;
 var User=require('../User.js');
+var exportXls=require('../exportxls.js');
+
+function toDateString(date, noTimeString) {
+    if (typeof date=='string') date=new Date(date);
+    if (!date instanceof Date) return null;
+    var ret=''+date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
+    if (!noTimeString) noTimeString='min sec';
+    else if (typeof noTimeString!='string') noTimeString='';
+    if (noTimeString.indexOf('min')>=0) ret+=' '+date.getHours()+':'+date.getMinutes();
+    if (noTimeString.indexOf('sec')>=0) ret+=':'+date.getSeconds();
+    return ret;
+}
 
 getDB(function(err, db) {
 	if (err) return router.use(function(req,res) {
@@ -71,6 +83,19 @@ getDB(function(err, db) {
             if (q.ans!=ans) return callback('答案不符');
             user.dbuser.pwd=pwd;
             callback();
+        });
+    }));
+    router.all('/downxlsx', httpf({userid:'string', token:'string',no_return:true}, function(userid, token){
+        var req=this.req, res=this.res;
+        User.fromID(userid, function(err, user) {
+            if (err) return res.status(502).send({err:err});
+            if (!user.storedAdminCoinsLogs) return res.status(404).send({err:'xlsx not found'});
+            if (user.storedAdminCoinsLogs.token!=token) return res.status(403).send({err:'token wrong, access denied'});
+            var start=user.storedAdminCoinsLogs.start, end=user.storedAdminCoinsLogs.end;
+            db.adminlog.find({time:{$gt:start, $lte:end}}).toArray(function(err, r) {
+                if (err) return res.status(502).send({err:err});
+                exportXls(req, res, r, toDateString(start, true)+'-'+toDateString(end, true));
+            });
         });
     }));
 });

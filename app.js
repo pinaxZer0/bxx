@@ -152,7 +152,7 @@ app.param('interface', function (req, res, next, intf) {
 });
 app.use('/pf/:interface', function (req, res, next) {
 	debugout('pf', req.pf);
-	if (external_pf[req.pf]) return external_pf[req.pf].call(null, req, res, function () { res.status(404).end('no such function ' + req.url); });
+	if (external_pf[req.pf]) return external_pf[req.pf].call(null, req, res, function () { res.status(404).send({err:'no such function ' + req.url, detail:arguments}); });
 	res.end('pf ' + req.pf + ' not defined');
 });
 function dateString(d) {
