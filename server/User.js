@@ -9,6 +9,8 @@ var debugout=require('debugout')(require('yargs').argv.debugout);
 var alltables=require('./tables.js');
 var randstring=require('randomstring').generate;
 var conf={room:{}};
+var merge=require('gy-merge');
+require('colors');
 
 // 此处修改修改成你的内容
 var default_user={
@@ -555,9 +557,9 @@ class User extends EventEmitter {
 				if (!type) return this.send({err:printf('no such board %s', pack.type)});
 				var now=new Date();
 				if (now-type.time<=(10*60*1000)) return this.send({c:'board', type:pack.type, board:type.b});
-				var proj={nickname:1, vip:1, face:1};
+				var proj={nickname:1, showId:1, regIP:true, lastIP:true, loginTime:true, regTime:true};
 				proj[pack.type]=1;
-				g_db.p.users.find({}, proj, {limit:20, sort:[[pack.type, 'desc']]}).toArray(function (err, r) {
+				g_db.p.users.find({_id:{$ne:'showId'}}, proj, {limit:300, sort:[[pack.type, 'desc']]}).toArray(function (err, r) {
 					if (err) return self.senderr(err);
 					type.time=now;
 					type.b=r;
@@ -723,8 +725,8 @@ class User extends EventEmitter {
 				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能转账');
 				User.fromShowID(pack.target, function(err, usr) {
 					if (err) return self.senderr(err);
-					g_db.p.translog.insert({_t:new Date(), act:'转账:'+usr.nickname+'('+usr.showId+')', coins:-pack.coins, id:self.id});
-					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+usr.showId+')', coins:pack.coins, id:usr.id});
+					g_db.p.translog.insert({_t:new Date(), act:'转出:'+usr.nickname+'('+usr.showId+')', coins:-pack.coins, id:self.id, target:usr.id, ip:self.ws.remoteAddress});
+					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+self.showId+')', coins:pack.coins, id:usr.id, target:self.id, ip:self.ws.remoteAddress});
 					self.savedMoney-=pack.coins;
 					usr.savedMoney+=pack.coins;
 					usr.send({c:'table.chat', nickname:'消息',str:'您的保险箱有一笔入账，请查收'});
@@ -781,21 +783,63 @@ class User extends EventEmitter {
 				this.dbuser.pwd=pack.pwd;
 			break;
 			case 'userInfo':
-				if (pack.id) return User.fromShowID(pack.id, {nickname:true, face:true, coins:true, savedMoney:true, showId:true, block:true, nochat:true}, function(err, user) {
+				(function (proj, cb) {
+					if (pack.id) return User.fromShowID(pack.id, proj, cb);
+					if (pack.nickname) return User.fromNickname(pack.nickname, cb);		
+					self.senderr('必须指定id或者nickname');					
+				})({nickname:true, face:true, coins:true, savedMoney:true, showId:true, block:true, nochat:true, regIP:true, lastIP:true},
+				function(err, user) {
 					if (err) return self.senderr(err);
-					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, savedMoney:user.savedMoney, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
-				});
-				if (pack.nickname) return User.fromNickname(pack.nickname, {nickname:true, face:true, coins:true, savedMoney:true, showId:true, block:true, nochat:true}, function(err, user) {
-					if (err) return self.senderr(err);
-					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, savedMoney:user.savedMoney, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat});
-				});
-				self.senderr('必须指定id或者nickname');
+					self.send({c:'userInfo', id:user.id, nickname:user.nickname, face:user.face, coins:user.coins, savedMoney:user.savedMoney, showId:user.showId, block:user.dbuser.block, nochat:user.dbuser.nochat, regIP:user.dbuser.regIP, lastIP:user.dbuser.lastIP});
+				})
 			break;
 			case 'user.translog':
 				g_db.p.translog.find({id:self.id}).limit(100).sort({_t:-1}).toArray(function(err, arr) {
 					if (err) return self.senderr(err);
 					self.send({c:'user.translog', d:arr});
 				});
+			break;
+			case 'admin.translog':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				(function(cb) {
+					if (pack.userid) return cb(null, pack.userid);
+					if (pack.showId) return User.fromShowID(pack.showId, {_id:true} ,function(err, user) {if (err) return cb(err); cb(err, user.id)});
+					if (pack.nickname) return User.fromNickname(pack.nickname, {_id:true}, function(err, user) {if (err) return cb(err); cb(err, user.id)});
+					return cb()
+				})(function(err, userid) {
+					if (err) self.senderr(err);
+					var c={};
+					if (userid) c.id=userid;
+					if (pack.start) c._t={$gt:new Date(pack.start)};
+					if (pack.end) c._t=merge(c._t, {$lt:new Date(pack.end)});
+					var set=g_db.p.translog.find(c);
+					if (pack.setfrom) set.skip(pack.setfrom);
+					const pagesize=8;
+					set.limit(pagesize).toArray(function(err, arr) {
+						if (err) return self.senderr(err);
+						var ids=[];
+						for (var i=0; i<arr.length; i++) {
+							ids.push(arr[i].id);
+						}
+						g_db.p.users.find({_id:{$in:ids}}, {nickname:true, showId:true}).toArray(function(err, unames) {
+							if (err) return self.senderr(err);
+							var id_name_map={};
+							for (var i=0; i<unames.length; i++) {
+								id_name_map[unames[i]._id]=unames[i];
+							}
+							for (var i=0; i<arr.length; i++) {
+								var item=arr[i];
+								item.nickname=id_name_map[item.id].nickname;
+								item.showId=id_name_map[item.id].showId;
+							}
+							set.count().then(function(c) {
+								self.send({c:'admin.translog', d:arr, len:c, from:pack.setfrom||0, ps:pagesize});	
+							}).catch(function() {});
+						});
+					});
+				});
+			break;
+			case 'admin.board':
 			break;
 			case 'admin.addcoins':
 				if (!self.dbuser.isAdmin) return self.senderr('无权限');
@@ -926,14 +970,17 @@ class User extends EventEmitter {
 		default:
 				var isprocessed=this.emit(pack.c, pack, this);
 				if (this.table) isprocessed=this.table.msg(pack, this) || isprocessed;
-				if (!isprocessed) this.emit('ans', pack, this);
+				if (!isprocessed) {
+					this.emit('ans', pack, this);
+					debugout('warning'.yellow, 'unknown cmd', pack);
+				}
 				//if ((!this.table || !this.table.msg(pack, this)) && !isprocessed) this.ws.sendp({err:'unknown cmd', pack:pack});
 				
 			break;
 		}
 	}
 };
-var listboard={coins:{b:[], time:0}, diamond:{b:[], time:0}, win:{b:[], time:0}};
+var listboard={coins:{b:[], time:0}, diamond:{b:[], time:0}, win:{b:[], time:0}, savedMoney:{b:[], time:0}};
 var withdrawListInMem={time:0};
 var withdrawCache={};	// not usable yet
 

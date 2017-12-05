@@ -37,7 +37,7 @@ const GAME_STATUS={
 	QIEPAI:5,
 };
 const playerMaxDeal=50000000;
-const enrollBaseCoins=2000000;
+const enrollBaseCoins=2000000,enrollMaxCoins=500000000;
 const playerBankerSetLimits=12;
 const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
 const waterRatio=0.99;
@@ -101,6 +101,16 @@ class Baijiale extends TableBase {
 		if (!gd.seats[user.id]) {
 			gd.seats[user.id]={user:user}; 
 			this.countOnline();
+		}
+		//如果banker重入，换掉它
+		if (gd.playerBanker && gd.playerBanker.id==user.id) gd.playerBanker=user;
+		if (gd.enroll) {
+			var idx=gd.enroll.findIndex(function(ele) {
+				return ele.id==user.id;
+			});
+			if (idx>=0) {
+				gd.enroll[idx]=user;
+			}
 		}
 		var o=this.mk_transfer_gamedata(this.gamedata);
 		var gamedata=o.gamedata||o.scene;
@@ -208,7 +218,7 @@ class Baijiale extends TableBase {
 		var playerBanker=this.gamedata.playerBanker;
 		if (playerBanker) {
 			playerBanker.bankerSets++;
-			if (playerBanker.coins>=enrollBaseCoins && (playerBanker.bankerSets<=limitSets||this.gamedata.enroll.length==0)) {
+			if ((playerBanker.coins>=enrollBaseCoins && playerBanker.coins<=enrollMaxCoins)&& (playerBanker.bankerSets<=limitSets||this.gamedata.enroll.length==0)) {
 				return cb();
 			}
 		}
@@ -219,7 +229,7 @@ class Baijiale extends TableBase {
 		var self=this, anticipate=null;
 		for (var i=0; i<this.gamedata.enroll.length; i++) {
 			anticipate=this.gamedata.enroll[i];
-			if (!anticipate.offline && anticipate.coins>=enrollBaseCoins) break;
+			if (!anticipate.offline && anticipate.coins>=enrollBaseCoins && anticipate.coins<=enrollMaxCoins) break;
 		}
 		if (i>=this.gamedata.enroll.length) {
 			this.gamedata.playerBanker=null;
@@ -593,6 +603,7 @@ class Baijiale extends TableBase {
 				// if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
 				if (idx>=0) return comesfrom.senderr('已经在排队了');
 				if (comesfrom.coins<enrollBaseCoins) return comesfrom.senderr('金豆不足200万，不能做帅');
+				if (comesfrom.coin>enrollMaxCoins) return comesfrom.senderr('金豆超过5亿，不能做帅');
 				this.gamedata.enroll.push(comesfrom);
 			} else {
 				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) {
@@ -611,6 +622,21 @@ class Baijiale extends TableBase {
 			break;
 		}
 		return super.msg(pack, comesfrom);
+	}
+	safeStop(cb) {
+		if (this.allusers().length==0) return cb();
+		var self=this;
+		function prepareQuit() {
+			self.broadcast({c:'table.chat', nickname:'系统', str:'本服务器将在本局结束后停机维护，您可能会看见屏幕闪烁，或者断线提示，请勿担心，10秒之后我们就会恢复服务'});
+			process.nextTick(function() {
+				self.q.push(function() {
+					// stoped
+					cb();
+				});
+			});
+		}
+		if (this.gamedata.status==GAME_STATUS.JIESUAN) this.q.push(prepareQuit)
+		else prepareQuit();
 	}
 }
 

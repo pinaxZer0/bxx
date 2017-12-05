@@ -120,5 +120,15 @@ module.exports={
 	availble:availble,
 	find:find,
 	remove:remove,
-	all:all
+	all:all,
+	alltbls:function() {
+		var o=[];
+		for (var t in _tables) {
+			for (var c in _tables[t]) {
+				var tbl=_tables[t][c];
+				o.push(tbl);
+			}
+		}
+		return o;		
+	}
 }

@@ -407,7 +407,7 @@ app.get('/weixin/verifySite', function (req, res) {
 
 getDB(function (err, db, easym) {
 	if (err) return console.log(err);
-	require('./server')(db, easym.createDbJson, wss);
+	var gameServer=require('./server')(db, easym.createDbJson, wss);
 	server.on('request', app);
 	server.listen(argv.port, function () { console.log('Listening on ' + server.address().port) });
 

@@ -7,6 +7,7 @@ var debugout=require('debugout')(args.debugout);
 var onlineUsers=require('./online.js'), alltables=require('./tables.js');
 var User=require('./User.js');
 var rndstring=require('randomstring').generate;
+require('colors');
 
 function send(data) {
 	try {
@@ -74,6 +75,12 @@ function afterUserIn(err, pack, ws, dbuser) {
 }
 function afterUserInStep2(err, pack, ws, dbuser) {
 	if (err) return ws.sendp({err:err});
+	dbuser.lastIP=ws.remoteAddress;
+	if (!dbuser.regIP) {
+		dbuser.regIP=ws.remoteAddress;
+		dbuser.regTime=new Date();
+	}
+	// if (!pack.version) return ws.sendp({err:'软件已升级，点击屏幕重新加载以便完成更新', act:'reload'});
 	if (dbuser) {
 		if (dbuser.block>new Date()) return ws.sendp({c:'lgerr',msg:'账号被封停', view:'login'});
 		if (!dbuser.__created) {
@@ -150,9 +157,10 @@ function afterUserInStep2(err, pack, ws, dbuser) {
 module.exports=function msgHandler(db, createDbJson, wss) {
 	g_db={p:db, createDbJson:createDbJson};
 
-	wss.on('connection', function connection(ws) {
+	wss.on('connection', function connection(ws, req) {
 		ws.sendp=ws.sendjson=send;
 		ws.__ob=true;
+		ws.remoteAddress=req.headers['x-forwarded-for']||req.headers['X-Real-IP']||req.headers['x-real-ip']||req.connection.remoteAddress;
 		debugout('someone in');
 
 		ws.on('message', function(data) {
@@ -232,6 +240,7 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 		.on('error', console.log)
 		.on('close', function() {
 			if (ws.user) {
+				debugout('userout'.red, ws.user.id);
 				onlineUsers.remove(ws.user);
 				ss('userout', {userid:ws.user.id});
 				broadcast({c:'userout', userid:ws.user.id, nick:ws.user.nickname});
@@ -244,3 +253,15 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 setInterval(function() {
 	ss('onlineCount', {count:onlineUsers.length});
 }, 60*1000);
+
+process.on('SIGINT', function() {
+	console.log('recv quit signal, wait all tables quit@', new Date());
+	var ss=alltables.alltbls();
+	async.each(ss, function(s, cb) {
+		s.safeStop(cb);
+	},
+	function() {
+		console.log('safe quit@', new Date());
+		process.exit(0);
+	})
+});
