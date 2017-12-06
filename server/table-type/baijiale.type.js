@@ -104,6 +104,7 @@ class Baijiale extends TableBase {
 		}
 		//如果banker重入，换掉它
 		if (gd.playerBanker && gd.playerBanker.id==user.id) gd.playerBanker=user;
+		// 排队重入
 		if (gd.enroll) {
 			var idx=gd.enroll.findIndex(function(ele) {
 				return ele.id==user.id;
@@ -111,6 +112,14 @@ class Baijiale extends TableBase {
 			if (idx>=0) {
 				gd.enroll[idx]=user;
 			}
+		}
+		debugout('user in'.cyan, user.coins);
+		// 下注重入
+		if (gd.deal && gd.deal[user.id] && gd.deal[user.id].user) {
+			debugout('user in&rein'.cyan, gd.deal[user.id].user.coins,gd.deal[user.id].user.lockedCoins);
+			user.lockedCoins=gd.deal[user.id].user.lockedCoins;
+			user.coins=gd.deal[user.id].user.coins;
+			gd.deal[user.id].user=user;
 		}
 		var o=this.mk_transfer_gamedata(this.gamedata);
 		var gamedata=o.gamedata||o.scene;
@@ -485,7 +494,7 @@ class Baijiale extends TableBase {
 			// deal.user.send({c:'setprofit', p:userprofit});
 			// modifyUserCoins(deal.user, finaldelta);
 			var u=deal.user;
-			deal.user=undefined;
+			// deal.user=undefined;
 			user_win_list.push({user:u, deal:deal, win:userwin, lose:userlose});
 		}
 		// profit里是庄家的盈利，庄盈利
@@ -539,6 +548,7 @@ class Baijiale extends TableBase {
 			modifyUserCoins(obj.user, delta);
 			var newCoins=obj.user.coins;
 			g_db.games.insert({user:obj.user.id, deal:obj.deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
+			debugout('user score'.cyan, delta, obj.user.coins);
 		}
 		// this.profits.push({water:water, profit:profit, t:now, set:gd.setnum /*, playerSet:isPlayerBanker()*/});
 		debugout('sys win(profit, water)', profit, water);
@@ -627,7 +637,7 @@ class Baijiale extends TableBase {
 		if (this.allusers().length==0) return cb();
 		var self=this;
 		function prepareQuit() {
-			self.broadcast({c:'table.chat', nickname:'系统', str:'本服务器将在本局结束后停机维护，您可能会看见屏幕闪烁，或者断线提示，请勿担心，10秒之后我们就会恢复服务'});
+			self.broadcast({c:'table.chat', nickname:'系统', str:'本局结束后将进行停机维护，您可能会看见屏幕闪烁，或者断线提示，请勿担心，10秒之后我们就会恢复服务'});
 			process.nextTick(function() {
 				self.q.push(function() {
 					// stoped

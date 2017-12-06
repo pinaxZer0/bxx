@@ -669,7 +669,7 @@ class User extends EventEmitter {
 				if (!pack.coins) return;
 				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能存钱');
 				if ((self.coins-(self.lockedCoins||0))<pack.coins) return self.senderr('现金不足');
-				// g_db.p.translog.insert({_t:new Date(), act:'存入保险箱', coins:-pack.coins, id:self.id});
+				g_db.p.depositlog.insert({_t:new Date(), act:'存入保险箱', coins:self.coins, lockedCoins:self.lockedCoins, savedMoney:self.savedMoney, change:-pack.coins, id:self.id});
 				self.savedMoney+=pack.coins;
 				self.coins-=pack.coins;
 			break;
@@ -677,7 +677,7 @@ class User extends EventEmitter {
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				pack.coins=Number(pack.coins);
 				if (self.savedMoney<pack.coins) return self.senderr('保险箱中没有那么多资金');
-				// g_db.p.translog.insert({_t:new Date(), act:'提取现金', coins:pack.coins, id:self.id});
+				g_db.p.depositlog.insert({_t:new Date(), act:'提取现金', coins:self.coins, lockedCoins:self.lockedCoins, savedMoney:self.savedMoney, change:pack.coins, id:self.id});
 				self.savedMoney-=pack.coins;
 				self.coins+=pack.coins;
 			break;
