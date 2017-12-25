@@ -18,6 +18,7 @@ function toDateString(date, noTimeString) {
     return ret;
 }
 
+
 getDB(function(err, db) {
 	if (err) return router.use(function(req,res) {
 		res.send({err:err});
@@ -94,7 +95,19 @@ getDB(function(err, db) {
             var start=user.storedAdminCoinsLogs.start, end=user.storedAdminCoinsLogs.end;
             db.adminlog.find({time:{$gt:start, $lte:end}}).toArray(function(err, r) {
                 if (err) return res.status(502).send({err:err});
-                exportXls(req, res, r, toDateString(start, true)+'-'+toDateString(end, true));
+                exportXls(req, res, r, toDateString(start, true)+'-'+toDateString(end, true), {
+                    from:'ID',
+                    _t:'时间',
+                    nickname:'用户名',
+                    coins:'账户余额',
+                    user:'姓名',
+                    card:'卡号',
+                    name:'银行',
+                    province:'省',
+                    city:'市',
+                    distribution:'支行',
+                    mobi:'手机',
+                });
             });
         });
     }));

@@ -602,10 +602,12 @@ class User extends EventEmitter {
 			case 'withdraw':
 				// if (!withdrawCache[this.id]) {
 				// 	withdrawCache[this.id]={from:this.id, rmb:pack.coins};
-					g_db.p.withdraw.insert({from:this.id, nickname:this.nickname, exported:false, _t:new Date(), rmb:pack.coins}, function() {
-						self.coins-=pack.coins;
-						self.send({c:'withdraw.ok'});
-					});
+				var _bnk=self.bank;
+				if (_bnk==null) return self.senderr('未提供银行卡号');
+				g_db.p.withdraw.insert(merge(_bnk, {from:this.id, nickname:this.nickname, exported:false, _t:new Date(), rmb:pack.coins, coins:self.coins}), function() {
+					self.coins-=pack.coins;
+					self.send({c:'withdraw.ok'});
+				});
 				// } else {
 				// 	withdrawCache[this.id].rmb+=pack.coins;
 				// 	g_db.p.withdraw.update({from:this.id}, {$set:{rmb:withdrawCache[this.id].rmb}}, function() {
@@ -812,7 +814,7 @@ class User extends EventEmitter {
 					if (userid) c.id=userid;
 					if (pack.start) c._t={$gt:new Date(pack.start)};
 					if (pack.end) c._t=merge(c._t, {$lt:new Date(pack.end)});
-					var set=g_db.p.translog.find(c);
+					var set=g_db.p.translog.find(c).sort({_t:-1});
 					if (pack.setfrom) set.skip(pack.setfrom);
 					const pagesize=8;
 					set.limit(pagesize).toArray(function(err, arr) {

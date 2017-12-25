@@ -6,7 +6,7 @@ var XLSX = require('xlsx');
  * @param {express.res} res 
  * @param {[{},{}]} objArr 
  */
-module.exports=function (req, res, objArr, filename) {
+module.exports=function (req, res, objArr, filename, transMap) {
     var title=[], data=[];
     for (var i=0; i<objArr.length; i++) {
         var item=objArr[i];
@@ -14,7 +14,7 @@ module.exports=function (req, res, objArr, filename) {
         var _d=[];
         data[i]=_d;
         for (var k in item) {
-            if (!title[idx]) title[idx]=k;
+            if (!title[idx]) title[idx]=(transMap?transMap[k]:null)||k;
             idx++;
             _d.push(item[k]);
         }

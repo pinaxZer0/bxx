@@ -75,7 +75,7 @@ class Baijiale extends TableBase {
 		this.msgDispatcher.on('userquit', this.countOnline.bind(this));
 		this.run();
 		setInterval(function() {
-			self.broadcast({c:'table.chat', nickname:'小贴士', str:tips[Math.floor(Math.random()*tips.length)]});
+			self.broadcast({c:'table.chat', role:'小贴士', str:tips[Math.floor(Math.random()*tips.length)]});
 		}, 10*60*1000);
 	}
 	countOnline() {
@@ -126,12 +126,12 @@ class Baijiale extends TableBase {
 		gamedata.$={init:true};
 		o.seq=1;
 		user.send(o);
-		user.send({c:'table.chat', nickname:'提示', str:'挂帅条件：200,0000<br>区域限制： 1,0000,0000<br>玩家限制：5000,0000<br>庄赔率： 1.98<br>闲赔率:  2.02<br>庄对，闲对赔率: 12.00', seq:1});
+		user.send({c:'table.chat', role:'提示', str:'挂帅条件：200,0000<br>区域限制： 1,0000,0000<br>玩家限制：5000,0000<br>庄赔率： 1.98<br>闲赔率:  2.02<br>庄对，闲对赔率: 12.00', seq:1});
 		this.broadcast({c:'table.userin', id:user.id, nickname:user.nickname, level:user.level, face:user.dbuser.face, seat:seat});
 		user.offline=false;
 		this.msgDispatcher.emit('userin', user);
 
-		if (user.savedMoney>0 && !user.dbuser.secpwd) user.send({c:'table.chat', nickname:'消息', str:'您的保险柜有入账，请设置保险柜密码领取'});
+		if (user.savedMoney>0 && !user.dbuser.secpwd) user.send({c:'table.chat', role:'消息', str:'您的保险柜有入账，请设置保险柜密码领取'});
 	}
 	mk_transfer_gamedata(obj, idx) {
 		// 简化user对象，只传输id nickname face level score
@@ -326,7 +326,7 @@ class Baijiale extends TableBase {
 				if (pack.xian<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
 				if (left<0) return user.send({err:'不能继续压闲'});
 				// if ((total.xian+pack.xian)>(total.zhuang+gd.opt.maxZhu/3)) return user.send({err:'不能继续压闲'});
-				if (pack.xian>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲区下注了'+shortenCoinStr(pack.xian)});
+				if (pack.xian>=1000000) self.broadcast({c:'table.chat', role:'富豪', str:user.nickname+'在闲区下注了'+shortenCoinStr(pack.xian)});
 				deal.xian+=pack.xian;
 				total.xian+=pack.xian;
 				// user.coins-=pack.xian;
@@ -335,7 +335,7 @@ class Baijiale extends TableBase {
 				if (pack.zhuang<gd.opt.minZhu) return user.send({err:'最少下注'+gd.opt.minZhu});
 				if (left<0) return user.send({err:'不能继续压庄'});
 				// if ((total.zhuang+pack.zhuang)>(total.xian+gd.opt.maxZhu/3)) return user.send({err:'不能继续压庄'});
-				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
+				if (pack.zhuang>=1000000) self.broadcast({c:'table.chat', role:'富豪', str:user.nickname+'在庄区下注了'+shortenCoinStr(pack.zhuang)});
 				deal.zhuang+=pack.zhuang;
 				total.zhuang+=pack.zhuang;
 				// user.coins-=pack.zhuang;
@@ -343,7 +343,7 @@ class Baijiale extends TableBase {
 			if (pack.he) {
 				if (pack.he<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				if ((total.he+pack.he)>gd.opt.maxHe) return user.send({err:'不能继续压和'});
-				if (pack.he>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在和区下注了'+shortenCoinStr(pack.he)});
+				if (pack.he>=1000000) self.broadcast({c:'table.chat', role:'富豪', str:user.nickname+'在和区下注了'+shortenCoinStr(pack.he)});
 				deal.he+=pack.he;
 				total.he+=pack.he;
 				// user.coins-=pack.he;
@@ -352,7 +352,7 @@ class Baijiale extends TableBase {
 				if (pack.xianDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				// if ((total.xianDui+pack.xianDui)>gd.opt.maxDui) return user.send({err:'不能继续压闲对'});
 				if (left<0) return user.send({err:'不能继续压闲对'});
-				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
+				if (pack.xianDui>=1000000) self.broadcast({c:'table.chat', role:'富豪', str:user.nickname+'在闲对下注了'+shortenCoinStr(pack.xianDui)});
 				deal.xianDui+=pack.xianDui;
 				total.xianDui+=pack.xianDui;
 				// user.coins-=pack.xianDui;
@@ -361,7 +361,7 @@ class Baijiale extends TableBase {
 				if (pack.zhuangDui<gd.opt.minDui) return user.send({err:'最少下注'+gd.opt.minDui});
 				// if ((total.zhuangDui+pack.zhuangDui)>gd.opt.maxDui) return user.send({err:'不能继续压庄对'});
 				if (left<0) return user.send({err:'不能继续压庄对'});
-				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', nickname:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
+				if (pack.zhuangDui>=1000000) self.broadcast({c:'table.chat', role:'富豪', str:user.nickname+'在庄对下注了'+shortenCoinStr(pack.zhuangDui)});
 				deal.zhuangDui+=pack.zhuangDui;
 				total.zhuangDui+=pack.zhuangDui;
 				// user.coins-=pack.zhuangDui;
@@ -547,8 +547,11 @@ class Baijiale extends TableBase {
 			obj.user.send({c:'setprofit', p:delta});
 			modifyUserCoins(obj.user, delta);
 			var newCoins=obj.user.coins;
+			var u=obj.deal.user;
+			obj.deal.user=undefined;
 			g_db.games.insert({user:obj.user.id, deal:obj.deal, r:r, oldCoins:orgCoins, newCoins:newCoins, t:now});
 			debugout('user score'.cyan, delta, obj.user.coins);
+			obj.deal.user=u;
 		}
 		// this.profits.push({water:water, profit:profit, t:now, set:gd.setnum /*, playerSet:isPlayerBanker()*/});
 		debugout('sys win(profit, water)', profit, water);
@@ -636,16 +639,17 @@ class Baijiale extends TableBase {
 	safeStop(cb) {
 		if (this.allusers().length==0) return cb();
 		var self=this;
-		function prepareQuit() {
-			self.broadcast({c:'table.chat', nickname:'系统', str:'本局结束后将进行停机维护，您可能会看见屏幕闪烁，或者断线提示，请勿担心，10秒之后我们就会恢复服务'});
+		function prepareQuit(next) {
+			self.broadcast({c:'table.chat', role:'系统', str:'本局结束后将进行停机维护，您可能会看见屏幕闪烁，或者断线提示，请勿担心，10秒之后我们就会恢复服务'});
 			process.nextTick(function() {
 				self.q.push(function() {
 					// stoped
 					cb();
 				});
 			});
+			next && next();
 		}
-		if (this.gamedata.status==GAME_STATUS.JIESUAN) this.q.push(prepareQuit)
+		if (this.gamedata.status==GAME_STATUS.JIESUAN) this.q.unshift(prepareQuit)
 		else prepareQuit();
 	}
 }
