@@ -80,7 +80,7 @@ function afterUserInStep2(err, pack, ws, dbuser) {
 		dbuser.regIP=ws.remoteAddress;
 		dbuser.regTime=new Date();
 	}
-	// if (!pack.version) return ws.sendp({err:'软件已升级，点击屏幕重新加载以便完成更新', act:'reload'});
+	if (!pack.version || pack.version!='1.1.0') return ws.sendp({err:'软件已升级，点击屏幕重新加载以便完成更新', act:'reload'});
 	if (dbuser) {
 		if (dbuser.block>new Date()) return ws.sendp({c:'lgerr',msg:'账号被封停', view:'login'});
 		if (!dbuser.__created) {
