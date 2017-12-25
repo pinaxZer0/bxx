@@ -103,7 +103,13 @@ class Baijiale extends TableBase {
 			this.countOnline();
 		}
 		//如果banker重入，换掉它
-		if (gd.playerBanker && gd.playerBanker.id==user.id) gd.playerBanker=user;
+		if (gd.playerBanker && gd.playerBanker.id==user.id) {
+			var p=gd.playerBanker.profit, bs=gd.playerBanker.bankerSets;
+			gd.playerBanker=user;
+			gd.playerBanker.profit=p;
+			gd.playerBanker.bankerSets=bs;
+			user.send({c:'bankerprofit', p:p});
+		}
 		// 排队重入
 		if (gd.enroll) {
 			var idx=gd.enroll.findIndex(function(ele) {
@@ -307,6 +313,7 @@ class Baijiale extends TableBase {
 			return (gd.opt.maxZhu-(Math.abs((total.xian+pack.xian)*factor.xian-(total.zhuang+pack.zhuang)*factor.zhuang)+(total.xianDui+pack.xianDui)*factor.xianDui+(total.zhuangDui+pack.zhuangDui)*factor.zhuangDui));
 		}
 		function handleXiazhu(pack, user) {
+			if (!gd.playerBanker) return user.senderr('无人坐庄，禁止下注');
 			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
 			if (!deal) {
@@ -507,7 +514,7 @@ class Baijiale extends TableBase {
 				modifyUserCoins(gd.playerBanker, p);
 				// gd.playerBanker.coins+=p;
 				gd.playerBanker.profit+=p;
-				debugout('banker win(profit, minus water)', profit, p);
+				debugout('banker win(profit, minus water, total)', profit, p,gd.playerBanker.profit);
 				this.broadcast({c:'bankerprofit', p:p});
 			} else {
 				if (profit+gd.playerBanker.coins<0) {
@@ -526,6 +533,7 @@ class Baijiale extends TableBase {
 				modifyUserCoins(gd.playerBanker, profit);
 				// gd.playerBanker.coins+=profit;
 				gd.playerBanker.profit+=profit;
+				debugout('banker win(profit, total)', profit, gd.playerBanker.profit);
 				this.broadcast({c:'bankerprofit', p:profit});
 			}
 			// 如果是人的庄，只记录water，否则记录profit+water
