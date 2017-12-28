@@ -1,4 +1,6 @@
 'use strict';
+require('colors');
+
 var TableBase=require('./tablebase.js');
 var async=require('async'), merge=require('gy-merge'), clone=require('clone');
 var Game=require('./gamerule');
@@ -38,7 +40,7 @@ const GAME_STATUS={
 };
 const playerMaxDeal=50000000;
 const enrollBaseCoins=2000000,enrollMaxCoins=500000000;
-const playerBankerSetLimits=12;
+const playerBankerSetLimits=2;
 const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
 const waterRatio=0.99;
 
@@ -171,7 +173,7 @@ class Baijiale extends TableBase {
 			}
 		}
 		if (obj.playerBanker) {
-			debugout('upd playerBanker');
+			debugout('upd playerBanker'.cyan, this.scene.playerBanker.bankerSets);
 			var u=this.scene.playerBanker;
 			if (!u) delete obj.playerBanker;
 			else obj.playerBanker={id:u.id, nickname:u.nickname, coins:u.coins, bankerSets:u.bankerSets, profit:u.profit};
@@ -232,7 +234,10 @@ class Baijiale extends TableBase {
 
 		var playerBanker=this.gamedata.playerBanker;
 		if (playerBanker) {
+			debugout('chg bankerSets'.cyan, playerBanker.bankerSets);
 			playerBanker.bankerSets++;
+			var delta=this.mk_transfer_gamedata({playerBanker:playerBanker});
+			this.broadcast(delta);
 			if ((playerBanker.coins>=enrollBaseCoins && playerBanker.coins<=enrollMaxCoins)&& (playerBanker.bankerSets<=limitSets||this.gamedata.enroll.length==0)) {
 				return cb();
 			}
@@ -254,6 +259,8 @@ class Baijiale extends TableBase {
 		this.gamedata.playerBanker=anticipate;
 		this.gamedata.playerBanker.bankerSets=1;
 		this.gamedata.playerBanker.profit=0;
+		var delta=this.mk_transfer_gamedata({playerBanker:playerBanker});
+		this.broadcast(delta);
 		this.gamedata.enroll.splice(0, i+1);
 		return cb();
 	}
