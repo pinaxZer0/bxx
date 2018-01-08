@@ -40,7 +40,7 @@ const GAME_STATUS={
 };
 const playerMaxDeal=50000000;
 const enrollBaseCoins=2000000,enrollMaxCoins=500000000;
-const playerBankerSetLimits=2;
+const playerBankerSetLimits=12;
 const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
 const waterRatio=0.99;
 
