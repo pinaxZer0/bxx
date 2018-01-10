@@ -64,7 +64,7 @@ function chkpwd(userid, pwd, cb) {
 		// } else {
 			if (r[0].pwd==pwd) return cb(null);
 			debugout(r[0].pwd, pwd);
-			return cb('用户名密码不匹配，点击屏幕重试');
+			return cb('用户名密码不匹配');
 		// }
 		// cb(null);
 	});
@@ -182,7 +182,7 @@ module.exports=function msgHandler(db, createDbJson, wss) {
 				break;
 				case 'login':
 					chkpwd(pack.id, pack.pwd, function(err) {
-						if (err) return ws.sendp({err:{message:err, view:'login'}, cancelRelogin:true});
+						if (err) return ws.sendp({c:'lgerr', msg:err, view:'login', cancelRelogin:true});
 						if (onlineUsers.get(pack.id)) {
 							debugout('already online, kick old');
 							afterUserIn(null, pack, ws, onlineUsers.get(pack.id).dbuser);
