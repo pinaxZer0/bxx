@@ -644,6 +644,7 @@ class Baijiale extends TableBase {
 			}
 			break;
 			case 'table.chat':
+				return comesfrom.send({c:'table.chat', role:'系统', str:'聊天功能被暂时关闭了'});
 				pack.nickname=comesfrom.nickname||comesfrom.id;
 				if (comesfrom.dbuser.nochat>new Date()) return comesfrom.send(pack);
 				this.broadcast(pack);
