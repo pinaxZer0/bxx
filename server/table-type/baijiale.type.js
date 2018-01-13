@@ -88,6 +88,10 @@ class Baijiale extends TableBase {
 	}
 	tryAutoDismiss() {}
 	canEnter(user) {
+		if (!srv_state.canenter) {
+			user.senderr('服务器暂时不能进入');
+			return false;
+		}
 		return true;
 	}
 	leave(user) {
@@ -644,7 +648,7 @@ class Baijiale extends TableBase {
 			}
 			break;
 			case 'table.chat':
-				return comesfrom.send({c:'table.chat', role:'系统', str:'聊天功能被暂时关闭了'});
+				if (!srv_state.canchat) return comesfrom.send({c:'table.chat', role:'系统', str:'聊天功能被暂时关闭了'});
 				pack.nickname=comesfrom.nickname||comesfrom.id;
 				if (comesfrom.dbuser.nochat>new Date()) return comesfrom.send(pack);
 				this.broadcast(pack);

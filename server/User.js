@@ -11,6 +11,7 @@ var randstring=require('randomstring').generate;
 var conf={room:{}};
 var merge=require('gy-merge');
 require('colors');
+var getSrvStat=require('./servers');
 
 // 此处修改修改成你的内容
 var default_user={
@@ -968,6 +969,25 @@ class User extends EventEmitter {
 				user.send({user:{hasSecpwd:false}});
 				self.send({c:'admin.resetsecpwd', r:'ok'});
 			});
+			break;
+			case 'admin.srv.chat':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				getSrvStat(function(err, stat) {
+					stat.canchat=pack.v;
+					self.send(merge({c:'admin.srv.ls'}, stat));
+				});
+			break;
+			case 'admin.srv.enter':
+				if (!self.dbuser.isAdmin) return self.senderr('无权限');
+				getSrvStat(function(err, stat) {
+					stat.canenter=pack.v;
+					self.send(merge({c:'admin.srv.ls'}, stat));
+				});
+			break;
+			case 'admin.srv.ls':
+				getSrvStat(function(err, stat) {
+					self.send(merge({c:'admin.srv.ls'}, stat));
+				});		
 			break;
 		default:
 				var isprocessed=this.emit(pack.c, pack, this);

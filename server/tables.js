@@ -6,10 +6,14 @@ var getDB=require('./db.js');
 var tt_def={};
 var tt=require('gy-module-loader')(path.join(__dirname, 'table-type/*.type.js'), function() {
 	var keys=Object.keys(tt);
+	var needReload=false;
 	for (var i=0; i<keys.length; i++) {
-		tt_def[path.basename(keys[i], '.type.js')]=tt[keys[i]];
+		if (!tt_def[path.basename(keys[i], '.type.js')]) {
+			tt_def[path.basename(keys[i], '.type.js')]=tt[keys[i]];
+			needReload=true;
+		}
 	}
-	init_tables();
+	if (needReload) init_tables();
 });
 
 function createTable(type, code, opt) {
