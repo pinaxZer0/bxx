@@ -38,11 +38,14 @@ const GAME_STATUS={
 	JIESUAN:3,
 	QIEPAI:5,
 };
+
 const playerMaxDeal=50000000;
-const enrollBaseCoins=2000000,enrollMaxCoins=500000000;
+// enrollBaseCoins change to 20w,org is 200w 
+const enrollBaseCoins=200000,enrollMaxCoins=500000000;
 const playerBankerSetLimits=12;
 const factor={xian:1.02, zhuang:0.98, xianDui:11, zhuangDui:11, he:8};
-const waterRatio=0.99;
+// waterRatio change to 0.98,org is 0.99 
+const waterRatio=0.98;
 
 var tips=[
 	'开牌出和时，庄，闲的下注将原分返还',
@@ -177,7 +180,7 @@ class Baijiale extends TableBase {
 			}
 		}
 		if (obj.playerBanker) {
-			debugout('upd playerBanker'.cyan, this.scene.playerBanker.bankerSets);
+			// debugout('upd playerBanker'.cyan, this.scene.playerBanker.bankerSets);
 			var u=this.scene.playerBanker;
 			if (!u) delete obj.playerBanker;
 			else obj.playerBanker={id:u.id, nickname:u.nickname, coins:u.coins, bankerSets:u.bankerSets, profit:u.profit};
@@ -238,7 +241,7 @@ class Baijiale extends TableBase {
 
 		var playerBanker=this.gamedata.playerBanker;
 		if (playerBanker) {
-			debugout('chg bankerSets'.cyan, playerBanker.bankerSets);
+			// debugout('chg bankerSets'.cyan, playerBanker.bankerSets);
 			playerBanker.bankerSets++;
 			var delta=this.mk_transfer_gamedata({playerBanker:playerBanker});
 			this.broadcast(delta);
@@ -272,7 +275,8 @@ class Baijiale extends TableBase {
 		var pb=this.gamedata.playerBanker;
 		if (!pb) {
 			this.gamedata.opt.minZhu=100;
-			this.gamedata.opt.maxZhu=200000;
+			// maxZhu times 10
+			this.gamedata.opt.maxZhu=2000000;
 			this.gamedata.opt.minDui=100;
 			this.gamedata.opt.maxDui=Math.floor(this.gamedata.opt.maxZhu/factor.xianDui/100)*100;
 			this.gamedata.opt.maxHe=Math.floor(this.gamedata.opt.maxZhu/factor.he/100)*100;
@@ -324,7 +328,7 @@ class Baijiale extends TableBase {
 			return (gd.opt.maxZhu-(Math.abs((total.xian+pack.xian)*factor.xian-(total.zhuang+pack.zhuang)*factor.zhuang)+(total.xianDui+pack.xianDui)*factor.xianDui+(total.zhuangDui+pack.zhuangDui)*factor.zhuangDui));
 		}
 		function handleXiazhu(pack, user) {
-			if (!gd.playerBanker) return user.senderr('无人坐庄，禁止下注');
+			// if (!gd.playerBanker) return user.senderr('无人坐庄，禁止下注');
 			if (user==gd.playerBanker) return;
 			var deal=gd.deal[user.id];
 			if (!deal) {
