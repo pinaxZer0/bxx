@@ -15,7 +15,7 @@ var getSrvStat=require('./servers');
 
 // 此处修改修改成你的内容
 var default_user={
-	coins:0, savedMoney:0, level:1, face:'ui://vb2dadv6l8vr7r', tickets:1, friends:[]
+	coins:500, savedMoney:0, level:1, face:'ui://vb2dadv6l8vr7r', tickets:1, friends:[]
 };
 
 function getDbuser(userid, proj, cb) {
@@ -45,6 +45,13 @@ function toProj(arr) {
 	}
 	return p;
 }
+function isSameDay(d1, d2) {
+	return d1.getFullYear() === d2.getFullYear()
+		&& d1.getDate() === d2.getDate()
+		&& d1.getMonth() === d2.getMonth();
+}
+const Relief=[200, 200, 100];
+
 // 此处修改修改成你的内容
 var lvdef=[0, 30, 60, 120, 240, 480, 960, 1920, 3840, 7680, 15360, 30720, 61440, 122880];
 class Interact extends EventEmitter {
@@ -801,6 +808,21 @@ class User extends EventEmitter {
 					if (err) return self.senderr(err);
 					self.send({c:'user.translog', d:arr});
 				});
+			break;
+			case 'user.relief':
+				var today=new Date();
+				if (!user.dbuser.lastRelief) {
+					user.dbuser.lastRelief={t:today, c:3, amt:8};
+				} else if (!isSameDay(user.dbuser.lastRelief.t, today)) {
+					user.dbuser.lastRelief.t=today;
+					user.dbuser.lastRelief.c=3;
+				} else {
+					if (user.dbuser.lastRelief.amt<=0) return this.senderr('所有礼包全部领完了');
+					if (user.dbuser.lastRelief.c<=0) return this.senderr('今日礼包领完了，明天再来吧');
+					user.dbuser.lastRelief.c--;
+					user.dbuser.lastRelief.amt--;
+				}
+				user.coins+=Relief[user.dbuser.lastRelief.c];
 			break;
 			case 'admin.translog':
 				if (!self.dbuser.isAdmin) return self.senderr('无权限');

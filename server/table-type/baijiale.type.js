@@ -219,11 +219,7 @@ class Baijiale extends TableBase {
 			cb();
 		});
 
-		this.q.push([
-			this.waitUserEnter.bind(this),
-		],function(err) {
-
-		});
+		this.q.push(this.waitUserEnter.bind(this));
 		this.newgame();
 	}
 	waitUserEnter(cb) {
@@ -340,7 +336,15 @@ class Baijiale extends TableBase {
 			var curDeal=(pack.xian||0)+(pack.zhuang||0)+(pack.xianDui||0)+(pack.zhuangDui||0)+(pack.he||0);
 			var total_deal=curDeal+userTotal;
 			if (total_deal>playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
-			if (total_deal>user.coins) return user.send({err:{message:'金豆不足，请充值', /*win:'RechargeWin'*/}});
+			if (total_deal>user.coins) {
+				var ret={win:'ReliefWin'};
+				var lr=user.dbuser.lastRelief;
+				if (lr) {
+					if (lr.amt<=0) ret={err:{message:'金豆不足，请充值', win:'RechargeWin'}};
+					if (isSameDay(lr.t, new Date())&& lr.c<=0) ret={err:{message:'金豆不足，请充值', win:'RechargeWin'}}
+				}
+				return user.send(ret);
+			}
 
 			var left=leftXiazhu(pack);
 			debugout(pack, total, left);
