@@ -337,12 +337,7 @@ class Baijiale extends TableBase {
 			var total_deal=curDeal+userTotal;
 			if (total_deal>playerMaxDeal) return user.send({err:{message:'超过5000万，不能下注'}});
 			if (total_deal>user.coins) {
-				var ret={win:'ReliefWin'};
-				var lr=user.dbuser.lastRelief;
-				if (lr) {
-					if (lr.amt<=0) ret={err:{message:'金豆不足，请充值', win:'RechargeWin'}};
-					if (isSameDay(lr.t, new Date())&& lr.c<=0) ret={err:{message:'金豆不足，请充值', win:'RechargeWin'}}
-				}
+				var ret={err:{message:'金豆不足，请充值', win:'RechargeWin'}}
 				return user.send(ret);
 			}
 

@@ -315,7 +315,7 @@ class User extends EventEmitter {
 		this.send({user:{savedMoney:n}});
 	}
 	get coins() {
-		return this.dbuser.coins;
+		return this.dbuser.coins||0;
 	}
 	set coins(n) {
 		this.dbuser.coins=n;
@@ -731,12 +731,14 @@ class User extends EventEmitter {
 				pack.coins=Number(pack.coins);
 				if (pack.coins<=0) return self.senderr('金豆数量不对');
 				if (pack.coins>this.savedMoney) return this.senderr('没有足够的金豆');
+				if (pack.coins<10000) return this.senderr('最少转出1万金豆');
+				// if (((pack.coins-10000)%10500)!=0) return this.senderr('转出金豆只能是10000，20500，31000，41500以此类推');
 				if (pack.target==this.showId) return this.senderr('不能转给自己');
 				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能转账');
 				User.fromShowID(pack.target, function(err, usr) {
 					if (err) return self.senderr(err);
-					g_db.p.translog.insert({_t:new Date(), act:'转出:'+usr.nickname+'('+usr.showId+')', coins:-pack.coins, id:self.id, target:usr.id, ip:self.ws.remoteAddress});
-					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+self.showId+')', coins:pack.coins, id:usr.id, target:self.id, ip:self.ws.remoteAddress});
+					g_db.p.translog.insert({_t:new Date(), act:'转出:'+usr.nickname+'('+usr.showId+')', oldSavedMoney:self.savedMoney, newSavedMoney:(self.savedMoney-pack.coins), coins:-pack.coins, id:self.id, target:usr.id, ip:self.ws.remoteAddress});
+					g_db.p.translog.insert({_t:new Date(), act:'转入:'+self.nickname+'('+self.showId+')', oldSavedMoney:usr.savedMoney, newSavedMoney:(usr.savedMoney+pack.coins), coins:pack.coins, id:usr.id, target:self.id, ip:self.ws.remoteAddress});
 					self.savedMoney-=pack.coins;
 					usr.savedMoney+=pack.coins;
 					usr.send({c:'table.chat', nickname:'消息',str:'您的保险箱有一笔入账，请查收'});
@@ -810,19 +812,29 @@ class User extends EventEmitter {
 				});
 			break;
 			case 'user.relief':
+				var user=this;
 				var today=new Date();
 				if (!user.dbuser.lastRelief) {
 					user.dbuser.lastRelief={t:today, c:3, amt:8};
 				} else if (!isSameDay(user.dbuser.lastRelief.t, today)) {
 					user.dbuser.lastRelief.t=today;
 					user.dbuser.lastRelief.c=3;
+					user.dbuser.lastRelief.amt--;
 				} else {
-					if (user.dbuser.lastRelief.amt<=0) return this.senderr('所有礼包全部领完了');
-					if (user.dbuser.lastRelief.c<=0) return this.senderr('今日礼包领完了，明天再来吧');
+					if (user.dbuser.lastRelief.amt<=1) {
+						return this.send({c:'user.relief', msg:'所有礼包全部领完了\r\n您可以充值金豆', nomorenotify:true});							
+					}
+					if (user.dbuser.lastRelief.c<=1) {
+						return this.send({c:'user.relief', msg:'今日礼包领完了\r\n您可以充值金豆',todaynonotify:true});							
+					}
 					user.dbuser.lastRelief.c--;
 					user.dbuser.lastRelief.amt--;
 				}
-				user.coins+=Relief[user.dbuser.lastRelief.c];
+				var restored=Relief[3-user.dbuser.lastRelief.c];
+				var oldCoins=user.coins;
+				user.coins+=restored;
+				g_db.p.translog.insert({_t:new Date(), id:user.id, act:'转入:翻身礼包',coins:restored, oldCoins:oldCoins, newCoins:user.coins});
+				this.send({c:'user.relief', coins:restored});
 			break;
 			case 'admin.translog':
 				if (!self.dbuser.isAdmin) return self.senderr('无权限');
@@ -875,13 +887,14 @@ class User extends EventEmitter {
 					getDB(function(err, db, easym) {
 						if (err) return self.senderr(err);
 						if (user.coins<0) return self.senderr('用户分数异常，请联系技术');
+						var oldCoins=user.coins;
 						if (pack.coins<0 && user.coins+pack.coins<0) {
 							user.coins=0;
 							pack.coins=-user.coins;
 						}
 						else user.coins+=pack.coins;
 						db.adminlog.insert({time:new Date(), target:user.id, targetName:user.nickname, coins:pack.coins, operatorName:self.nickname, operator:self.id});
-						db.translog.insert({_t:new Date(), id:user.id, act:pack.coins>=0?'转入:活动赠送':'处罚',coins:pack.coins});
+						db.translog.insert({_t:new Date(), id:user.id, act:pack.coins>=0?'转入:活动赠送':'处罚',coins:pack.coins, oldCoins:oldCoins, newCoins:user.coins});
 						self.send({c:'admin.addcoins', newcoin:user.coins});
 					});
 				});
