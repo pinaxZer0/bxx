@@ -141,7 +141,7 @@ class Baijiale extends TableBase {
 		gamedata.$={init:true};
 		o.seq=1;
 		user.send(o);
-		user.send({c:'table.chat', role:'提示', str:'挂帅条件：200,0000<br>区域限制： 1,0000,0000<br>玩家限制：5000,0000<br>庄赔率： 1.98<br>闲赔率:  2.02<br>庄对，闲对赔率: 12.00', seq:1});
+		user.send({c:'table.chat', role:'提示', str:'挂帅条件：200,000<br>区域限制： 1,0000,0000<br>玩家限制：5000,0000<br>庄赔率： 1.98<br>闲赔率:  2.02<br>庄对，闲对赔率: 12.00', seq:1});
 		this.broadcast({c:'table.userin', id:user.id, nickname:user.nickname, level:user.level, face:user.dbuser.face, seat:seat});
 		user.offline=false;
 		this.msgDispatcher.emit('userin', user);
@@ -637,7 +637,7 @@ class Baijiale extends TableBase {
 				if (this.gamedata.playerBanker && this.gamedata.playerBanker.id==comesfrom.id) return comesfrom.senderr('正在做帅');
 				// if (this.allusers(true).length==1) return comesfrom.senderr('只有一个人，不能做帅');
 				if (idx>=0) return comesfrom.senderr('已经在排队了');
-				if (comesfrom.coins<enrollBaseCoins) return comesfrom.senderr('金豆不足200万，不能做帅');
+				if (comesfrom.coins<enrollBaseCoins) return comesfrom.senderr('金豆不足20万，不能做帅');
 				if (comesfrom.coin>enrollMaxCoins) return comesfrom.senderr('金豆超过5亿，不能做帅');
 				this.gamedata.enroll.push(comesfrom);
 			} else {
