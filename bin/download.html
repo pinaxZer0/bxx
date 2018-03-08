@@ -52,13 +52,9 @@ body{ margin:0; padding:0; border:0;}
 
 <script>
 	function is_weixin(){
-        var ua = navigator.userAgent.toLowerCase();
-        if(ua.match(/micromessenger/i)=="micromessenger") {
-            return true;
-        } else {
-            return false;
-        }
-   }
+		if( typeof WeixinJSBridge !== "undefined" ) return true;
+		return false;
+	}
 	var oios = document.getElementById('dvios');
     var oAndroid = document.getElementById('dvAndroid');
 	
