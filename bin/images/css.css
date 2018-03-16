@@ -1,0 +1,215 @@
+@charset "utf-8";
+html{font-size:80%}
+*{margin:0;padding:0}
+img{border:0;}
+a{text-decoration:none;}
+a {color:#656565; text-decoration:none;}
+a:hover {color:#628828;}
+ul,li{list-style:none; 	margin:0;padding:0;}
+body{background:#FFF;font-family:"微软雅黑";font-size:14px;position:relative;}
+
+.fl{float:left!important;}
+.fr{float:right!important;}
+.clear{clear:both;}
+.top{width:100%;height:35px;background:#f5f5f5;border-bottom:1px solid #e6ecf3;border-top:1px solid #e6ecf3;}
+.top_content{width:980px;height:35px;margin:0 auto;line-height:35px;}
+.top_left{color:#6c6c6c;font-size:14px;margin-left:35px;}
+
+
+/***banner***/
+
+.nav{width:980px;height:25px;margin:0 auto;position:absolute;z-index:999;top:50px;left:50%;margin-left:-490px;}
+.nav .logo{float:left;display:block;}
+
+
+
+.wrap {
+	position: relative;
+	z-index: 0;
+	height: 590px;
+}
+.banner-show {
+	position:absolute;
+	top:0;
+	left:0;
+	z-index:0;
+	width:100%;
+	min-width:980px;
+	height:590px;
+	overflow:hidden;
+}
+.banner-show .cell {
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	overflow:hidden;
+	background-repeat:repeat-x;
+	background-position:center top;
+}
+.banner-show .cell .con {
+	position:relative;
+	height:590px;
+	background-repeat:no-repeat;
+	background-position:center top;
+}
+
+
+
+
+
+
+.download{width:1000px;height:340px;overflow:hidden;margin:0 auto;position:absolute;z-index:99;top:230px;left:50%;margin-left:-490px;}
+.download .download_n{width:340px;height:340px;float:right;margin-right:60px;position:relative;}
+.download .download_n h2{text-align:center;font-size:28px;color:#fff;margin-bottom:10px;}
+.download .download_n h6{text-align:center;font-size:20px;color:#fff;font-weight:normal;}
+.download .download_n .pc{width:288px;height:58px;margin:15px auto 0;}
+.download .download_n .phone{width:208px;height:110px;margin:20px auto 0;text-align:center;}
+.download .download_n .phone_n1,.download .download_n .phone_n2{width:104px;height:110px;float:left;}
+.download .download_n .phone_n1 p,.download .download_n .phone_n2 p{color:#FFF;}
+.download .download_n .tishi{width:216px;height:28px;text-align:center;color:#FFF;line-height:28px;background:#0a5bce;margin:10px auto 0;border:1px solid #6da9fe;}
+
+
+
+.bg-green{
+	background-color: #5e24ac
+}
+
+.home-icon-box {
+	width: 234px
+}
+
+.home-icon .home-icon-box {
+	margin-left: 30px;
+	border-right: 1px solid rgba(255, 255, 255, .2)
+}
+
+.home-icon .home-icon-box:last-child {
+    border-right: none
+}
+
+.home-icon-content {
+	margin-top: 6px;
+	margin-left: 20px;
+	margin-right: 10px;
+}.home-icon {
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+.clearfix,.container {
+	zoom: 1;
+	padding-right: 10px;
+	padding-left: 30px;	
+}
+.fz-14 {
+    font-size: 14px;color:#FFF;
+}
+.fz-12 {
+    font-size: 12px;color:#FFF;
+}
+.content {
+	width: 1100px;
+	padding-top: 10px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+
+
+
+/***底部**/
+
+.foot {
+	background: #333;
+	margin-top: 1px;
+	padding-top: 80px;
+	padding-bottom: 40px;
+	width: 100%;
+	float: left;
+	color: #656565;
+}
+.fot1 {
+	width: 270px
+}
+
+.fot1 p {
+	padding-top: 30px;
+	padding-right: 100px;
+}
+
+.fot2 {
+	font-size: 14px;
+	width: 720px
+}
+
+.fot2 dl dt {
+	font-size: 16px;
+	color: #e60044
+}
+
+.fot2 dl {
+	line-height: 24px;
+	width: 120px;
+	float: left
+}
+
+
+.fl.fot2 p {
+	margin-top: 30px;
+	font-size: 12px;
+	border-top: #bbb solid 1px;
+	padding-top: 15px;
+	width: 663px;
+	float: left;
+	color: #656565;
+}
+
+.fot3 h2 {
+	color: #e60044;
+	font-weight: normal;
+}
+
+.fot3 {
+	text-align: center
+}
+
+.fot3 p {
+	font-size: 14px
+}
+
+.fot3 a {
+	width: 100%;
+	display: inline-block;
+	border-radius: 30px;
+	line-height: 40px;
+	border: #e60044 solid 1px;
+	color: #e60044;
+	margin-top: 50px
+}
+.center {
+	width: 1200px;
+	margin: 0 auto;
+	clear: both
+}
+
+.center:after {
+	clear: both;
+	content: "";
+	display: block
+}
+.martop15 {
+	margin-top: 15px;
+	color: #656565;
+}
+.arlist {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	line-height: 22px;
+}
+.litimg {
+	width: 155px;
+}
+.time {
+	line-height: 25px;
+	color: #999;
+}
