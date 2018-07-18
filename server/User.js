@@ -610,6 +610,7 @@ class User extends EventEmitter {
 			case 'withdraw':
 				// if (!withdrawCache[this.id]) {
 				// 	withdrawCache[this.id]={from:this.id, rmb:pack.coins};
+				if (pack.coins<0) return self.senderr('参数错误');
 				var _bnk=self.bank;
 				if (_bnk==null) return self.senderr('未提供银行卡号');
 				g_db.p.withdraw.insert(merge(_bnk, {from:this.id, nickname:this.nickname, exported:false, _t:new Date(), rmb:pack.coins, coins:self.coins}), function() {
@@ -677,6 +678,7 @@ class User extends EventEmitter {
 				pack.coins=Number(pack.coins);
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				if (!pack.coins) return;
+				if (pack.coins<0) return self.senderr('参数错误');
 				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能存钱');
 				if ((self.coins-(self.lockedCoins||0))<pack.coins) return self.senderr('现金不足');
 				g_db.p.depositlog.insert({_t:new Date(), act:'存入保险箱', coins:self.coins, lockedCoins:self.lockedCoins, savedMoney:self.savedMoney, change:-pack.coins, id:self.id});
@@ -686,6 +688,7 @@ class User extends EventEmitter {
 			case 'safe.withdraw':
 				if (isNaN(pack.coins)) return self.senderr('参数有误');
 				pack.coins=Number(pack.coins);
+				if (pack.coins<0) return self.senderr('参数错误');
 				if (self.table && self.table.gamedata.playerBanker && self.table.gamedata.playerBanker==self) return self.senderr('坐庄时不能取钱');
 				if (self.savedMoney<pack.coins) return self.senderr('保险箱中没有那么多资金');
 				g_db.p.depositlog.insert({_t:new Date(), act:'提取现金', coins:self.coins, lockedCoins:self.lockedCoins, savedMoney:self.savedMoney, change:pack.coins, id:self.id});
@@ -1024,6 +1027,9 @@ class User extends EventEmitter {
 				getSrvStat(function(err, stat) {
 					self.send(merge({c:'admin.srv.ls'}, stat));
 				});		
+			break;
+			case 'rc.querymethod':
+				self.send({c:'rc.querymethod', method:pack.inapp?'hepay':''});
 			break;
 		default:
 				var isprocessed=this.emit(pack.c, pack, this);
